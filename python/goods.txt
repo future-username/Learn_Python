@@ -1,0 +1,11 @@
+Clothes  Prices
+
+jacket - 4 500
+socks   - 500
+umbrella - 900
+belt    - 1 000
+slippers - 90
+
+backpack - 14 999.99
+flip-flops - 350,99
+fur coat  - 26 000

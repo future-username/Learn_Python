@@ -1,0 +1,4 @@
+New initial data:
+
+ 37   8
+4 111 1000 1

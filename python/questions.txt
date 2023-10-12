@@ -1,0 +1,18 @@
+1. What sea with the name of the color does not exist?
+- Blacken
+- Red
++ Blue
+- Yellow
+- White
+
+2. Which country is the second largest in the world?
++ Canada
+-Russia
+-USA
+-China
+  3. What are the tallest mountains in the world?
+Ural
+Andes
++ Himalayas
+Alps
+Caucasian
