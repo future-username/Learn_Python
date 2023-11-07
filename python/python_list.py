@@ -40,12 +40,31 @@
 # print(min(c))
 
 
-list_1 = [1, 2, 3, 4]
-list_2 = [10, 20]
-new_list = []
-new_list.extend(list_1)
-new_list.extend(list_2)
-# new_list.append(list_2)
-print(new_list)
-# print(list_2.pop(1))
-# print(list_2)
+# list_1 = [1, 2, 3, 4]
+# list_2 = [10, 20]
+# new_list = []
+# new_list.extend(list_1)
+# new_list.extend(list_2)
+# # new_list.append(list_2)
+# print(new_list)
+# # print(list_2.pop(1))
+# # print(list_2)
+
+
+list_1 = [0, 1, 2, 3, 4]
+
+'''next'''
+print(0, list_1[-1:1])
+print(1, list_1[0:2])
+print(2, list_1[1:3])
+print(3, list_1[2:4])
+print(4, list_1[3:0])
+
+print()
+
+'''previous'''
+print(0, list_1[-1:1])
+print(4, list_1[-2:0])
+print(3, list_1[-3:-1])
+print(2, list_1[-4:-2])
+print(1, list_1[0:-3])
