@@ -80,6 +80,32 @@
 # root.mainloop()
 
 
+# from tkinter import *
+#
+# button_texts = [
+#     ["MC 1 1", "MR 1 1", "MS 1 1", "M+ 1 1", "M- 1 1"],
+#     ["<- 1 1", "CE 1 1", "C 1 1", '± 1 1', '√ 1 1'],
+#     ["7 1 1", "8 1 1", "9 1 1", "/ 1 1", "% 1 1"],
+#     ['4 1 1', '5 1 1', '6 1 1', "* 1 1", "1/x 1 1"],
+#     ['1 1 1', '2 1 1', '3 1 1', "- 1 1", '= 1 2'],
+#     ['0 2 1', "", '. 1 1', "+ 1 1"]
+# ]
+# root = Tk()
+#
+# root.title("Calculator")
+# label_entry = Entry(justify=RIGHT)
+# label_entry.grid(column=0, row=0, columnspan=5, sticky=NSEW)
+# label_entry.insert(END, '0')
+#
+# for y, buttons in enumerate(button_texts):
+#     for x, text in enumerate(buttons):
+#         if text:
+#             _ = Button(text=text.split()[0], fg='black')
+#             _.grid(column=x, row=y+1, columnspan=text.split()[1], rowspan=text.split()[2], sticky=NSEW)
+#
+# root.mainloop()
+
+
 from tkinter import *
 
 button_texts = [
@@ -95,7 +121,7 @@ root = Tk()
 root.title("Calculator")
 label_entry = Entry(justify=RIGHT)
 label_entry.grid(column=0, row=0, columnspan=5, sticky=NSEW)
-label_entry.insert(END, 0)
+label_entry.insert(END, '0')
 
 for y, buttons in enumerate(button_texts):
     for x, text in enumerate(buttons):
@@ -104,3 +130,5 @@ for y, buttons in enumerate(button_texts):
             _.grid(column=x, row=y+1, columnspan=text.split()[1], rowspan=text.split()[2], sticky=NSEW)
 
 root.mainloop()
+
+

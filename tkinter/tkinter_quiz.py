@@ -1,91 +1,12 @@
-# from tkinter import *
-# from tkinter.ttk import *
-#
-#
-# def ask_question(el):
-#     for widget in el.winfo_children():
-#         widget.destroy()
-#     Label(el, text="Здесь могла быть Ваша реклама! \n Или вопрос с вариантами ответов.").pack()
-#
-#
-# def first_screen(el):
-#     Label(el, text='Welcome to my quiz!\n Press "Start" to continue...').pack()
-#     Button(el, text="Start", command=lambda e=el: ask_question(e)).pack()
-#
-#
-# root = Tk()
-#
-# frm = LabelFrame(text="Generate screen")
-# frm.pack()
-#
-# first_screen(frm)
-#
-# root.mainloop()
-
-
-# from tkinter import *
-# from tkinter.ttk import *
-#
-# answers = []
-#
-# quiz = ["Which widgets using to display text with the ability to edit it?",
-#         "Canvas",
-#         "Listbox",
-#         "Entry",
-#         "Text",
-#         "Label",
-#         "10110"]
-#
-#
-# def result_text(el):
-#     for widget in el.winfo_children():
-#         widget.destroy()
-#     points = check()
-#     Label(el, text=f'Ваш результат: {points} балла').pack()
-#     Button(el, text="Try again", command=lambda e=el: ask_question(e)).pack()
-#
-#
-# def check():
-#     points = 0
-#     for t, a in zip(quiz[-1], answers):
-#         if bool(int(t)) and bool(int(t)) == a.get():
-#             points += 1
-#         elif bool(int(t)) != a.get():
-#             points -= 1
-#     return points
-#
-#
-# def ask_question(el):
-#     for widget in el.winfo_children():
-#         widget.destroy()
-#     Label(el, text=quiz[0]).pack()
-#     for index, element in enumerate(quiz[:-1]):
-#         if index > 0:
-#             answers.append(BooleanVar())
-#             Checkbutton(el, text=element, variable=answers[index - 1], onvalue=1, offvalue=0).pack(anchor=W)
-#     Button(el, text="Next >>", command=lambda e=el: result_text(e)).pack()
-#
-#
-# def first_screen(el):
-#     Label(el, text='Welcome to my quiz!\n Press "Start" to continue...').pack()
-#     Button(el, text="Start", command=lambda e=el: ask_question(e)).pack()
-#
-#
-# root = Tk()
-#
-# frm = LabelFrame(text="Generate screen")
-# frm.pack()
-#
-# first_screen(frm)
-#
-# root.mainloop()
-
-
 from tkinter import *
 from tkinter.ttk import *
 import random
+from typing import Union
+
 
 answers = []
+
+iter_temp = []
 
 quiz = [
     {'question': 'What widgets using for positioning other widgets?',
@@ -97,12 +18,14 @@ quiz = [
 ]
 
 
-def result_text(el):
-    for widget in el.winfo_children():
-        widget.destroy()
+def result_text(index: int):
+    clean_screen(iter_temp[index])
     points = check()
-    Label(el, text=f'Ваш результат: {points} балла').pack()
-    Button(el, text="Try again", command=lambda e=el: first_screen(e)).pack()
+    frame_result = Frame()
+    frame_result.pack()
+    Label(frame_result, text=f'Ваш результат: {points} балла').pack()
+    button_command = lambda: (clean_screen(frame_result), frame_generate_screen.pack())
+    Button(frame_result, text="Try again", command=button_command).pack()
 
 
 def check():
@@ -122,39 +45,62 @@ def check():
     return points
 
 
-def ask_question(el, iter_quiz):
-    for widget in el.winfo_children():
-        widget.destroy()
-    current_question = next(iter_quiz)
-    Label(el, text=current_question['question']).pack()
-    random.shuffle(current_question['answers'])
-    for index, answer in enumerate(current_question['answers']):
-        variable = BooleanVar()
-        answers.append(variable)
-        Checkbutton(el, text=answer[1:], variable=variable, onvalue=1, offvalue=0).pack(anchor=W)
+def ask_question(index: int) -> None:
+    index_previous = len(quiz) - 1 if index == 0 else index - 1
+    index_current = index
+    index_next = index + 1 if index < len(quiz) - 1 else 0
 
-    if current_question != quiz[-1]:
-        print(next(iter_quiz))
-        Button(el, text="Previous <<", command=lambda e=el: ask_question(e, iter_quiz)).pack(side=LEFT)
-        Button(el, text="Next >>", command=lambda e=el: ask_question(e, iter_quiz)).pack(side=RIGHT)
-    else:
-        Button(el, text="Previous <<", command=lambda e=el: result_text(e)).pack(side=LEFT)
-        Button(el, text="Next >>", command=lambda e=el: result_text(e)).pack(side=RIGHT)
+    iter_temp[index_previous].pack_forget()
+    iter_temp[index_next].pack_forget()
+    iter_temp[index_current].pack()
+    button_frame = iter_temp[index].children['!frame'].children
+    button_previous = button_frame['!button']
+    button_finish = button_frame['!button2']
+    button_next = button_frame['!button3']
+
+    button_previous.config(text="Previous <<", command=lambda: ask_question(index_previous))
+    button_finish.config(text="Finish test", command=lambda: result_text(index_current))
+    button_next.config(text="Next >>", command=lambda: ask_question(index_next))
 
 
-def first_screen(el):
-    for widget in el.winfo_children():
-        widget.destroy()
-    iter_quiz = iter(quiz)
-    Label(el, text='Welcome to my quiz!\n Press "Start" to continue...').pack()
-    Button(el, text="Start", command=lambda e=el: ask_question(e, iter_quiz)).pack()
+def clean_screen(element: Union[LabelFrame, Frame]) -> None:
+    element.pack_forget()
+
+
+def first_screen() -> None:
+    Label(frame_generate_screen, text='Welcome to my quiz!\n Press "Start" to continue...').pack()
+    command_button = lambda: (clean_screen(frame_generate_screen), ask_question(0))
+    Button(frame_generate_screen, text="Start", command=command_button).pack()
+
+
+def generate_quiz() -> None:
+    for current_question in quiz:
+        frame = LabelFrame(text=current_question['question'])
+        random.shuffle(current_question['answers'])
+        for index, answer in enumerate(current_question['answers']):
+            variable = BooleanVar()
+            answers.append(variable)
+            Checkbutton(frame, text=answer[1:], variable=variable, onvalue=1, offvalue=0).pack(anchor=W)
+
+        frame_button = Frame(frame)
+        frame_button.pack(side=BOTTOM)
+        button_previous = Button(frame_button, text="Previous <<")
+        button_previous.pack(side=LEFT)
+
+        button_finish = Button(frame_button, text="Finish test")
+        button_finish.pack(side=LEFT)
+
+        button_next = Button(frame_button, text="Next >>")
+        button_next.pack(side=LEFT)
+
+        iter_temp.append(frame)
 
 
 root = Tk()
 
-frm = LabelFrame(text="Generate screen")
-frm.pack()
-
-first_screen(frm)
+frame_generate_screen = LabelFrame(text="Generate screen")
+frame_generate_screen.pack()
+generate_quiz()
+first_screen()
 
 root.mainloop()
