@@ -414,7 +414,7 @@ SIGN_LABELS = {
     "//": floordiv,
     "%": mod
 }
-COUNT_FIELD = 7
+COUNT_FIELD = 3
 
 TITLE = "Calculate example"
 
@@ -483,6 +483,7 @@ class MathExample:
     def __calculate(self) -> None:
         self.__normalize_numbers()
         numbers = (float(field.get()) for field in self.__list_entries)
+        print(list(numbers))
         result = str(reduce(self.__operator, numbers)) if self.__list_entries and self.__check() else 'ERROR'
         self.__result_entry.insert(0, result)
 
