@@ -115,8 +115,10 @@ button_texts = [
     # ['4 1 1', '5 1 1', '6 1 1'],  # "* 1 1"],  # "1/x 1 1"],
     # ['1 1 1', '2 1 1', '3 1 1', "- 1 1", '= 1 2'],
     # ['0 2 1', "", '. 1 1', "+ 1 1"]
-    ['0 1 1', "1 1 1", "c 1 1", "+ 1 1"]
+    ['0 1 1', "1 1 1", "c 1 1", "+ 1 1", "- 1 1", '= 1 1']
 ]
+
+last_value = None
 
 
 def clear():
@@ -127,42 +129,54 @@ def clear():
 
 
 def add_number_to_entry(value: str):
-    if display_expression.get().strip() == '0':
-        display_expression.delete(0, END)
-        display_number.delete(0, END)
-        display_expression.insert(END, value)
-        display_number.insert(END, value)
-    elif display_expression.get()[-1] == '0' and display_expression.get()[-2] in ('+', '-') and value != '0':
-        number = f'{display_expression.get()[:-1]}{value}'
-        display_expression.delete(0, END)
-        display_expression.insert(END, number)
-        display_number.delete(0, END)
-        display_number.insert(END, value)
-
-    elif display_expression.get()[-1] != '0':
-        display_expression.insert(END, value)
-        display_number.insert(END, value)
+    if display_expression.get().strip()[-2:] in ('+0', '-0', '0'):
+        display_expression.delete(len(display_expression.get()) - 1)
+        display_number.delete(len(display_number.get()) - 1)
+    display_expression.insert(END, value)
+    display_number.insert(END, value)
 
 
 def add_sign_to_entry(value: str):
     if display_expression.get()[-1] not in ('+', '-', '='):
+        calculate()
         display_expression.insert(END, value)
-        display_number.delete(0, END)
 
 
 def calculate():
-    example = list(display_expression.get().strip())
-    print(example)
+    print(display_expression.get().strip())
+    # example = list(map(int, display_expression.get().strip().split('+')))
+    # display_number.delete(0, END)
+    # display_number.insert(0, str(sum(example)))
+
+
+def get_example_as_list(example: str) -> list:
+    result = []
+    element = ''
+    for char in example:
+        if char in ['+', '-', '/', '*']:
+            result.append(element)
+            element = ''
+            result.append(char)
+        elif char != ' ':
+            element += char
+    result.append(element) if element else None
+    return result
 
 
 def main(value: str):
+    global last_value
     if value in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']:
+        display_number.delete(0, END) if last_value in ('+', '-') else None
+        last_value = value
         add_number_to_entry(value)
     elif value in ('+', '-'):
+        last_value = value
         add_sign_to_entry(value)
     elif value in '=':
+        last_value = value
         calculate()
     elif value in 'c':
+        last_value = value
         clear()
 
 
@@ -181,6 +195,6 @@ for y, buttons in enumerate(button_texts):
     for x, text in enumerate(buttons):
         if text:
             _ = Button(text=text.split()[0], fg='black', command=lambda t=text.split()[0]: main(t))
-            _.grid(column=x, row=y + 2, columnspan=text.split()[1], rowspan=text.split()[2], sticky=NSEW)
+            _.grid(column=x, row=y + 2, columnspan=int(text.split()[1]), rowspan=int(text.split()[2]), sticky=NSEW)
 
 root.mainloop()

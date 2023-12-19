@@ -298,11 +298,11 @@ class RomanNumber:
 
     @number_roman.setter
     def number_roman(self, value: Union[str, int]):
-        if type(value) == int:
+        if type(value) is int:
             self.__number_int = value
             self.__number_roman = self.__int_to_rim()
             return
-        Errors.value_error(value) if type(value) != str else None
+        Errors.value_error(value) if type(value) is not str else None
         value = value.upper()
         Errors.romane_error(value) if not self.__is_rim_number(value) else None
 
@@ -315,7 +315,7 @@ class RomanNumber:
 
     @number_int.setter
     def number_int(self, value: int):
-        Errors.value_error(value) if type(value) != int else None
+        Errors.value_error(value) if type(value) is not int else None
         Errors.number_error(value) if not str(value).isdigit() and value == 0 else None
 
         self.__number_int = value
