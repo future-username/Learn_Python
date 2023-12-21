@@ -107,18 +107,21 @@
 
 
 from tkinter import *
+from operator import add, sub, mul, truediv, pow
+import re
 
 button_texts = [
-    # ["MC 1 1", "MR 1 1", "MS 1 1", "M+ 1 1", "M- 1 1"],
-    # ["<- 1 1", "CE 1 1", "C 1 1", '± 1 1', '√ 1 1'],
-    # ["7 1 1", "8 1 1", "9 1 1"],  # "/ 1 1"],  # "% 1 1"],
-    # ['4 1 1', '5 1 1', '6 1 1'],  # "* 1 1"],  # "1/x 1 1"],
-    # ['1 1 1', '2 1 1', '3 1 1', "- 1 1", '= 1 2'],
-    # ['0 2 1', "", '. 1 1', "+ 1 1"]
-    ['0 1 1', "1 1 1", "c 1 1", "+ 1 1", "- 1 1", '= 1 1']
+    ["MC 1 1", "MR 1 1", "MS 1 1", "M+ 1 1", "M- 1 1"],
+    ["<- 1 1", "CE 1 1", "C 1 1", '± 1 1', '√ 1 1'],
+    ["7 1 1", "8 1 1", "9 1 1", "/ 1 1", "% 1 1"],
+    ['4 1 1', '5 1 1', '6 1 1', "* 1 1", "1/x 1 1"],
+    ['1 1 1', '2 1 1', '3 1 1', "- 1 1", '= 1 2'],
+    ['0 2 1', "", '. 1 1', "+ 1 1"],
 ]
 
 last_value = None
+operators = {"+": add, "-": sub, "*": mul, "/": truediv, "^": pow}
+precedence = {"+": 0, "-": 0, "*": 1, "/": 1, '^': 2}
 
 
 def clear():
@@ -129,7 +132,10 @@ def clear():
 
 
 def add_number_to_entry(value: str):
-    if display_expression.get().strip()[-2:] in ('+0', '-0', '0'):
+    if display_expression.get().strip()[-1] in '=':
+        display_expression.delete(0, END)
+        display_number.delete(0, END)
+    elif display_expression.get().strip()[-2:] in ('+0', '-0', '0'):
         display_expression.delete(len(display_expression.get()) - 1)
         display_number.delete(len(display_number.get()) - 1)
     display_expression.insert(END, value)
@@ -137,16 +143,42 @@ def add_number_to_entry(value: str):
 
 
 def add_sign_to_entry(value: str):
-    if display_expression.get()[-1] not in ('+', '-', '='):
+    if display_expression.get().strip()[-1] in '=':
+        display_expression.delete(len(display_expression.get()) - 1)
+        display_number.delete(len(display_number.get()) - 1)
+    elif display_expression.get().strip()[-1] in ('+=', '-=', '/=', '*='):
+        display_expression.delete(len(display_expression.get()) - 1)
+        display_number.delete(len(display_number.get()) - 1)
+    if value in ('+', '-'):
         calculate()
         display_expression.insert(END, value)
+    elif value in "=":
+        display_expression.insert(END, value)
+        calculate()
+
+
+def apply_op(op_stack, num_stack):
+    op = op_stack.pop()
+    num2, num1 = num_stack.pop(), num_stack.pop()
+    num_stack.append(operators[op](num1, num2))
 
 
 def calculate():
-    print(display_expression.get().strip())
-    # example = list(map(int, display_expression.get().strip().split('+')))
-    # display_number.delete(0, END)
-    # display_number.insert(0, str(sum(example)))
+    num_stack, op_stack = [], []
+
+    for token in re.findall("[+/*-]|[\d]+", display_expression.get().strip()):
+        if token in operators:
+            while op_stack and op_stack[-1] in operators and precedence[token] <= precedence[op_stack[-1]]:
+                apply_op(op_stack, num_stack)
+            op_stack.append(token)
+        else:
+            num_stack.append(float(token))
+
+    while op_stack:
+        apply_op(op_stack, num_stack)
+
+    display_number.delete(0, END)
+    display_number.insert(0, str(num_stack[0]))
 
 
 def get_example_as_list(example: str) -> list:
@@ -163,7 +195,7 @@ def get_example_as_list(example: str) -> list:
     return result
 
 
-def main(value: str):
+def create_interface(value: str):
     global last_value
     if value in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']:
         display_number.delete(0, END) if last_value in ('+', '-') else None
@@ -174,8 +206,8 @@ def main(value: str):
         add_sign_to_entry(value)
     elif value in '=':
         last_value = value
-        calculate()
-    elif value in 'c':
+        add_sign_to_entry(value)
+    elif value in 'C':
         last_value = value
         clear()
 
@@ -194,7 +226,7 @@ display_number.insert(END, '0')
 for y, buttons in enumerate(button_texts):
     for x, text in enumerate(buttons):
         if text:
-            _ = Button(text=text.split()[0], fg='black', command=lambda t=text.split()[0]: main(t))
+            _ = Button(text=text.split()[0], fg='black', command=lambda t=text.split()[0]: create_interface(t))
             _.grid(column=x, row=y + 2, columnspan=int(text.split()[1]), rowspan=int(text.split()[2]), sticky=NSEW)
 
 root.mainloop()
