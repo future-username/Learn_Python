@@ -143,18 +143,14 @@ def add_number_to_entry(value: str):
 
 
 def add_sign_to_entry(value: str):
-    if display_expression.get().strip()[-1] in '=':
-        display_expression.delete(len(display_expression.get()) - 1)
+    display_expression.insert(END, value)
+    if display_expression.get().strip()[-2:] in ('+=', '-=', '/=', '*=', '=+', '=-', '=*', '=/', '=^'):
+        display_expression.delete(len(display_expression.get()) - 2)
+    elif display_expression.get().strip()[-2] in operators.keys():
+        display_expression.delete(len(display_expression.get()) - 2)
+    elif display_expression.get().strip()[-1] in '=':
         display_number.delete(len(display_number.get()) - 1)
-    elif display_expression.get().strip()[-1] in ('+=', '-=', '/=', '*='):
-        display_expression.delete(len(display_expression.get()) - 1)
-        display_number.delete(len(display_number.get()) - 1)
-    if value in ('+', '-'):
-        calculate()
-        display_expression.insert(END, value)
-    elif value in "=":
-        display_expression.insert(END, value)
-        calculate()
+    calculate()
 
 
 def apply_op(op_stack, num_stack):
@@ -164,9 +160,12 @@ def apply_op(op_stack, num_stack):
 
 
 def calculate():
+    example = display_expression.get().strip()
+    if example[-1] in operators.keys():
+        example = display_expression.get().strip()[:-1]
     num_stack, op_stack = [], []
 
-    for token in re.findall("[+/*-]|[\d]+", display_expression.get().strip()):
+    for token in re.findall(r"[+/*-]|\d+", example):
         if token in operators:
             while op_stack and op_stack[-1] in operators and precedence[token] <= precedence[op_stack[-1]]:
                 apply_op(op_stack, num_stack)
@@ -185,7 +184,7 @@ def get_example_as_list(example: str) -> list:
     result = []
     element = ''
     for char in example:
-        if char in ['+', '-', '/', '*']:
+        if char in operators.keys():
             result.append(element)
             element = ''
             result.append(char)
@@ -197,16 +196,23 @@ def get_example_as_list(example: str) -> list:
 
 def create_interface(value: str):
     global last_value
-    if value in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']:
-        display_number.delete(0, END) if last_value in ('+', '-') else None
+    if value in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.']:
+        display_number.delete(0, END) if last_value in operators.keys() else None
         last_value = value
         add_number_to_entry(value)
-    elif value in ('+', '-'):
+    elif value in operators.keys():
         last_value = value
         add_sign_to_entry(value)
     elif value in '=':
         last_value = value
         add_sign_to_entry(value)
+    elif value in '<-' and display_expression.get().strip() != '0':
+        last_value = value
+        display_expression.delete(len(display_expression.get()) - 1)
+        display_expression.insert(END, '0') if not display_expression.get().strip() else None
+        display_number.delete(0, END)
+        example = get_example_as_list(display_expression.get())[-1]
+        display_number.insert(0, example) if example not in operators.keys() else None
     elif value in 'C':
         last_value = value
         clear()
