@@ -107,11 +107,11 @@
 
 
 from tkinter import *
-from operator import add, sub, mul, truediv, pow
+from operator import add, sub, mul, truediv
 import re
 
 button_texts = [
-    ["MC 1 1", "MR 1 1", "MS 1 1", "M+ 1 1", "M- 1 1"],
+    # ["MC 1 1", "MR 1 1", "MS 1 1", "M+ 1 1", "M- 1 1"],
     ["<- 1 1", "CE 1 1", "C 1 1", '± 1 1', '√ 1 1'],
     ["7 1 1", "8 1 1", "9 1 1", "/ 1 1", "% 1 1"],
     ['4 1 1', '5 1 1', '6 1 1', "* 1 1", "1/x 1 1"],
@@ -120,8 +120,9 @@ button_texts = [
 ]
 
 last_value = None
-operators = {"+": add, "-": sub, "*": mul, "/": truediv, "^": pow}
-precedence = {"+": 0, "-": 0, "*": 1, "/": 1, '^': 2}
+plus_minus_state = False
+operators = {"+": add, "-": sub, "*": mul, "/": truediv, '+-': sub, '--': add, '++': add, '-+': sub}
+precedence = {"+": 0, "-": 0, "*": 1, "/": 1, '+-': 0, '--': 0, '++': 0, '-+': 0}
 
 
 def clear():
@@ -151,6 +152,18 @@ def add_sign_to_entry(value: str):
     elif display_expression.get().strip()[-1] in '=':
         display_number.delete(len(display_number.get()) - 1)
     calculate()
+
+
+def plus_minus():
+    global plus_minus_state
+    # if plus_minus_state:
+
+    number = int(display_number.get().strip()) * -1
+    number_to_delete_index = display_expression.get().find(display_number.get().strip())
+    display_expression.delete(number_to_delete_index, END)
+    display_number.delete(0, END)
+    display_expression.insert(END, str(number))
+    display_number.insert(END, str(number))
 
 
 def apply_op(op_stack, num_stack):
@@ -196,26 +209,29 @@ def get_example_as_list(example: str) -> list:
 
 def create_interface(value: str):
     global last_value
+    if last_value == '<-' and display_expression.get().strip()[-1] in operators.keys() and value != '<-':
+        display_number.delete(0, END)
+
     if value in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.']:
         display_number.delete(0, END) if last_value in operators.keys() else None
-        last_value = value
         add_number_to_entry(value)
+    elif value == '±':
+        plus_minus()
     elif value in operators.keys():
-        last_value = value
         add_sign_to_entry(value)
     elif value in '=':
-        last_value = value
         add_sign_to_entry(value)
-    elif value in '<-' and display_expression.get().strip() != '0':
-        last_value = value
+    elif value in 'C' or (value in '<-' and '=' in display_expression.get().strip()):
+        clear()
+    elif (value in '<-' and display_expression.get().strip() != '0'
+          and display_expression.get().strip()[-1] not in operators.keys()):
         display_expression.delete(len(display_expression.get()) - 1)
         display_expression.insert(END, '0') if not display_expression.get().strip() else None
         display_number.delete(0, END)
         example = get_example_as_list(display_expression.get())[-1]
-        display_number.insert(0, example) if example not in operators.keys() else None
-    elif value in 'C':
-        last_value = value
-        clear()
+        display_number.insert(0, example) if example not in operators.keys()\
+            else display_number.insert(0, '0')
+    last_value = value
 
 
 root = Tk()
