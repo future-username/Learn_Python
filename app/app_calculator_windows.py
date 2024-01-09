@@ -167,6 +167,7 @@ def plus_minus():
 
 
 def apply_op(op_stack, num_stack):
+    # print(op_stack, num_stack)
     op = op_stack.pop()
     num2, num1 = num_stack.pop(), num_stack.pop()
     num_stack.append(operators[op](num1, num2))
@@ -177,9 +178,15 @@ def calculate():
     if example[-1] in operators.keys():
         example = display_expression.get().strip()[:-1]
     num_stack, op_stack = [], []
+    example = example.replace('+-', '-')
+    example = example.replace('--', '+')
 
     for token in re.findall(r"[+/*-]|\d+", example):
-        if token in operators:
+        print(token, op_stack, num_stack)
+        if display_expression.get().strip().startswith('-') and not num_stack:
+            num_stack.append(float(f'{op_stack[0]}{token}'))
+            op_stack.clear()
+        elif token in operators:
             while op_stack and op_stack[-1] in operators and precedence[token] <= precedence[op_stack[-1]]:
                 apply_op(op_stack, num_stack)
             op_stack.append(token)
