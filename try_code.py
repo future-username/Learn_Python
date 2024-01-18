@@ -162,52 +162,105 @@
 #
 # print(calculate(line))
 from operator import add, sub, mul, truediv
-import re
 
-operators = {"+": add, "-": sub, "*": mul, "/": truediv, '+-': sub, '--': add, '++': add, '-+': sub}
-precedence = {"+": 0, "-": 0, "*": 1, "/": 1, '+-': 0, '--': 0, '++': 0, '-+': 0}
+# import re
 
+operators = {"+": add, "-": sub, "*": mul, "/": truediv, '+-': sub}
+# precedence = {"+": 0, "-": 0, "*": 1, "/": 1, '+-': 0, '--': 0, '++': 0, '-+': 0}
 
-def apply_op(op_stack, num_stack):
-    # print(op_stack, num_stack)
-    op = op_stack.pop()
-    num2, num1 = num_stack.pop(), num_stack.pop()
-    num_stack.append(operators[op](num1, num2))
-
-
-def calculate(example):
-    if example[-1] in operators.keys():
-        example = example[:-1]
-    num_stack, op_stack = [], []
-    example = example.replace('+-', '-')
-    example = example.replace('--', '+')
-
-    for token in re.findall(r"[+/*-]|\d+", example):
-        if example.startswith('-') and not num_stack and len(op_stack) == 1:
-            num_stack.append(float(f'{op_stack[0]}{token}'))
-            op_stack.clear()
-        elif token in operators:
-            while op_stack and op_stack[-1] in operators and precedence[token] <= precedence[op_stack[-1]]:
-                apply_op(op_stack, num_stack)
-            op_stack.append(token)
-        else:
-            num_stack.append(float(token))
-
-    while op_stack:
-        apply_op(op_stack, num_stack)
-    return str(num_stack[0])
-    # display_number.delete(0, END)
-    # display_number.insert(0, str(num_stack[0]))
-
-
-print('result', calculate('-5+6'))
-print('result', calculate('-5+-6'))
-print('result', calculate('-5--6'))
-print('result', calculate('5-6'))
-print('result', calculate('5+6'))
+# def apply_op(op_stack, num_stack):
+#     # print(op_stack, num_stack)
+#     op = op_stack.pop()
+#     num2, num1 = num_stack.pop(), num_stack.pop()
+#     num_stack.append(operators[op](num1, num2))
+#
+#
+# def calculate(example):
+#     if example[-1] in operators.keys():
+#         example = example[:-1]
+#     num_stack, op_stack = [], []
+#     example = example.replace('+-', '-')
+#     example = example.replace('--', '+')
+#
+#     for token in re.findall(r"[+/*-]|\d+", example):
+#         if example.startswith('-') and not num_stack and len(op_stack) == 1:
+#             num_stack.append(float(f'{op_stack[0]}{token}'))
+#             op_stack.clear()
+#         elif token in operators:
+#             while op_stack and op_stack[-1] in operators and precedence[token] <= precedence[op_stack[-1]]:
+#                 apply_op(op_stack, num_stack)
+#             op_stack.append(token)
+#         else:
+#             num_stack.append(float(token))
+#
+#     while op_stack:
+#         apply_op(op_stack, num_stack)
+#     return str(num_stack[0])
+#     # display_number.delete(0, END)
+#     # display_number.insert(0, str(num_stack[0]))
+#
+#
+# print('result', calculate('-5+6'))
+# print('result', calculate('-5+-6'))
+# print('result', calculate('-5--6'))
+# print('result', calculate('5-6'))
+# print('result', calculate('5+6'))
 
 """
 2+2/-2*10-5*-8
 2+-10--40
 32
 """
+
+
+def get_example_as_list(example: str) -> list:
+    previous = ''
+    numbers = []
+    element = ''
+    for char in example:
+        element += char
+        if char in '+*/-' and previous.isdigit():
+            numbers.extend([element[:-1], char])
+            element = ''
+        previous = char
+
+    numbers.append(element)
+    return numbers
+
+
+def calculate(example: str) -> float:
+    list_example = get_example_as_list(example)
+    result_example = []
+    previous, char = None, None
+    for index, element in enumerate(list_example):
+        if element not in '*/+-' and not char:
+            previous = float(element)
+        elif element in '*/':
+            char = element
+        elif char and element not in '+-':
+            previous = operators[char](float(previous), float(element))
+            char = None
+        elif element in '+-':
+            result_example.extend([previous, element])
+            char = None
+    result_example.append(previous)
+    result = second_calculate(result_example)
+    return result
+
+
+def second_calculate(example: list) -> float:
+    previous, char = None, None
+    for index, element in enumerate(example):
+        if str(element) not in '+-' and not char:
+            previous = float(element)
+        elif str(element) in '+-':
+            char = element
+        elif char and str(element):
+            previous = operators[char](float(previous), float(element))
+            char = None
+    return float(previous)
+
+
+print(calculate('1+2*3/4*2+1'))
+print(calculate('1+2*4+3/2'))
+print(calculate('1--3/2+-1+2*2/-2+1'))
