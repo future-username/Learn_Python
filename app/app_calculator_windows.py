@@ -108,7 +108,6 @@
 
 from tkinter import *
 from operator import add, sub, mul, truediv
-import re
 
 button_texts = [
     # ["MC 1 1", "MR 1 1", "MS 1 1", "M+ 1 1", "M- 1 1"],
@@ -120,9 +119,7 @@ button_texts = [
 ]
 
 last_value = None
-plus_minus_state = False
-operators = {"+": add, "-": sub, "*": mul, "/": truediv, '+-': sub, '--': add, '++': add, '-+': sub}
-precedence = {"+": 0, "-": 0, "*": 1, "/": 1, '+-': 0, '--': 0, '++': 0, '-+': 0}
+operators = {"+": add, "-": sub, "*": mul, "/": truediv}
 
 
 def clear():
@@ -151,67 +148,53 @@ def add_sign_to_entry(value: str):
         display_expression.delete(len(display_expression.get()) - 2)
     elif display_expression.get().strip()[-1] in '=':
         display_number.delete(len(display_number.get()) - 1)
-    calculate()
+
+    display_number.delete(0, END)
+    display_number.insert(0, str(calculate(display_expression.get().strip()[:-1])))
 
 
-def plus_minus():
-    global plus_minus_state
-    # if plus_minus_state:
-
-    number = int(display_number.get().strip()) * -1
-    number_to_delete_index = display_expression.get().find(display_number.get().strip())
-    display_expression.delete(number_to_delete_index, END)
+def set_plus_minus():
+    number = float(display_number.get().strip()) * -1
+    example = display_expression.get().strip()
+    number_index = len(example) - len(get_example_as_list(example)[-1])
+    display_expression.delete(number_index, END)
     display_number.delete(0, END)
     display_expression.insert(END, str(number))
     display_number.insert(END, str(number))
 
 
-def apply_op(op_stack, num_stack):
-    # print(op_stack, num_stack)
-    op = op_stack.pop()
-    num2, num1 = num_stack.pop(), num_stack.pop()
-    num_stack.append(operators[op](num1, num2))
-
-
-def calculate():
-    example = display_expression.get().strip()
-    if example[-1] in operators.keys():
-        example = display_expression.get().strip()[:-1]
-    num_stack, op_stack = [], []
-    example = example.replace('+-', '-')
-    example = example.replace('--', '+')
-
-    for token in re.findall(r"[+/*-]|\d+", example):
-        print(token, op_stack, num_stack)
-        if display_expression.get().strip().startswith('-') and not num_stack:
-            num_stack.append(float(f'{op_stack[0]}{token}'))
-            op_stack.clear()
-        elif token in operators:
-            while op_stack and op_stack[-1] in operators and precedence[token] <= precedence[op_stack[-1]]:
-                apply_op(op_stack, num_stack)
-            op_stack.append(token)
-        else:
-            num_stack.append(float(token))
-
-    while op_stack:
-        apply_op(op_stack, num_stack)
-
-    display_number.delete(0, END)
-    display_number.insert(0, str(num_stack[0]))
-
-
 def get_example_as_list(example: str) -> list:
-    result = []
+    previous = ''
+    numbers = []
     element = ''
     for char in example:
-        if char in operators.keys():
-            result.append(element)
+        element += char
+        if char in '+*/-' and previous.isdigit():
+            numbers.extend([element[:-1], char])
             element = ''
-            result.append(char)
-        elif char != ' ':
-            element += char
-    result.append(element) if element else None
-    return result
+        previous = char
+
+    numbers.append(element)
+    return numbers
+
+
+def calculate(example: list | str, signs: str = '*/') -> float:
+    list_example = get_example_as_list(example) if isinstance(example, str) else example
+    result_example = []
+    previous, char = None, None
+    for index, element in enumerate(list_example):
+        if str(element) not in '*/+-' and not char:
+            previous = float(element)
+        elif str(element) in signs:
+            char = element
+        elif char:
+            previous = operators[char](float(previous), float(element))
+            char = None
+        elif str(element) in '+-' and '+-' not in signs:
+            result_example.extend([previous, element])
+            char = None
+    result_example.append(previous)
+    return calculate(result_example, '+-') if '+' in result_example or '-' in result_example else result_example[0]
 
 
 def create_interface(value: str):
@@ -223,7 +206,7 @@ def create_interface(value: str):
         display_number.delete(0, END) if last_value in operators.keys() else None
         add_number_to_entry(value)
     elif value == '±':
-        plus_minus()
+        set_plus_minus()
     elif value in operators.keys():
         add_sign_to_entry(value)
     elif value in '=':

@@ -228,39 +228,42 @@ def get_example_as_list(example: str) -> list:
     return numbers
 
 
-def calculate(example: str) -> float:
-    list_example = get_example_as_list(example)
+def calculate(example: list | str, signs: str = '*/') -> float:
+    list_example = get_example_as_list(example) if isinstance(example, str) else example
     result_example = []
     previous, char = None, None
     for index, element in enumerate(list_example):
-        if element not in '*/+-' and not char:
+        if str(element) not in '*/+-' and not char:
             previous = float(element)
-        elif element in '*/':
+        elif str(element) in signs:
             char = element
-        elif char and element not in '+-':
+        elif char:
             previous = operators[char](float(previous), float(element))
             char = None
-        elif element in '+-':
+        elif str(element) in '+-' and '+-' not in signs:
             result_example.extend([previous, element])
             char = None
     result_example.append(previous)
-    result = second_calculate(result_example)
-    return result
+    return calculate(result_example, '+-') if '+' in result_example or '-' in result_example else result_example[0]
 
 
-def second_calculate(example: list) -> float:
-    previous, char = None, None
-    for index, element in enumerate(example):
-        if str(element) not in '+-' and not char:
-            previous = float(element)
-        elif str(element) in '+-':
-            char = element
-        elif char and str(element):
-            previous = operators[char](float(previous), float(element))
-            char = None
-    return float(previous)
+# def second_calculate(example: list) -> float:
+#     previous, char = None, None
+#     for index, element in enumerate(example):
+#         if str(element) not in '+-' and not char:
+#             previous = float(element)
+#         elif str(element) in '+-':
+#             char = element
+#         elif char and str(element):
+#             previous = operators[char](float(previous), float(element))
+#             char = None
+#     return float(previous)
 
 
-print(calculate('1+2*3/4*2+1'))
-print(calculate('1+2*4+3/2'))
-print(calculate('1--3/2+-1+2*2/-2+1'))
+# print(calculate('1+2*3/4*2+1'))
+# print(calculate('1+2*4+3/2', '*/'))
+# print(calculate('1--3/2+-1+2*2/-2+1', '*/'))
+# print(calculate('2+2', '*/'))
+# print(calculate('-2+2', '*/'))
+# print(calculate('-2.5*2', '*/'))
+print(calculate('2+'))
