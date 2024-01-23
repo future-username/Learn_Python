@@ -107,6 +107,7 @@
 
 
 from tkinter import *
+from tkinter.ttk import *
 from operator import add, sub, mul, truediv
 
 button_texts = [
@@ -154,7 +155,8 @@ def add_sign_to_entry(value: str):
 
 
 def set_plus_minus():
-    number = float(display_number.get().strip()) * -1
+    number = display_number.get().strip()
+    number = str(number).removeprefix('-') if '-' in str(number) else f'-{number}'
     example = display_expression.get().strip()
     number_index = len(example) - len(get_example_as_list(example)[-1])
     display_expression.delete(number_index, END)
@@ -164,16 +166,15 @@ def set_plus_minus():
 
 
 def get_example_as_list(example: str) -> list:
-    previous = ''
+    previous, element = '', ''
     numbers = []
-    element = ''
     for char in example:
-        element += char
-        if char in '+*/-' and previous.isdigit():
-            numbers.extend([element[:-1], char])
+        if char in '+*/-' and (previous.isdigit() or previous == '.'):
+            numbers.extend([element, char])
             element = ''
+        else:
+            element += char
         previous = char
-
     numbers.append(element)
     return numbers
 
@@ -201,8 +202,11 @@ def create_interface(value: str):
     global last_value
     if last_value == '<-' and display_expression.get().strip()[-1] in operators.keys() and value != '<-':
         display_number.delete(0, END)
-
-    if value in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.']:
+    if value in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']:
+        display_number.delete(0, END) if last_value in operators.keys() else None
+        add_number_to_entry(value)
+    elif (value == '.' and not display_expression.get().endswith('.')
+          and str(get_example_as_list(display_expression.get())[-1]).count('.') < 1):
         display_number.delete(0, END) if last_value in operators.keys() else None
         add_number_to_entry(value)
     elif value == '±':
@@ -238,7 +242,8 @@ display_number.insert(END, '0')
 for y, buttons in enumerate(button_texts):
     for x, text in enumerate(buttons):
         if text:
-            _ = Button(text=text.split()[0], fg='black', command=lambda t=text.split()[0]: create_interface(t))
+            _ = Button(text=text.split()[0], command=lambda t=text.split()[0]: create_interface(t))
+            # _ = Button(text=text.split()[0], fg='black', command=lambda t=text.split()[0]: create_interface(t))
             _.grid(column=x, row=y + 2, columnspan=int(text.split()[1]), rowspan=int(text.split()[2]), sticky=NSEW)
 
 root.mainloop()
