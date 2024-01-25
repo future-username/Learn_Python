@@ -120,7 +120,7 @@ button_texts = [
 ]
 
 last_value = None
-operators = {"+": add, "-": sub, "*": mul, "/": truediv}
+operators = {"+": add, "-": sub, "*": mul, "/": truediv, "%": sub}
 
 
 def clear():
@@ -165,11 +165,23 @@ def set_plus_minus():
     display_number.insert(END, str(number))
 
 
+def calculate_percent():
+    example = get_example_as_list(display_expression.get().strip())
+    number_index = len(display_expression.get().strip()) - len(example[-2])
+    clear() if len(example) < 3 else None
+    result_number = float(example[-1]) / 100 * float(example[-3])
+
+    display_expression.delete(number_index, END)
+    display_number.delete(0, END)
+    display_expression.insert(END, str(result_number))
+    display_number.insert(END, str(result_number))
+
+
 def get_example_as_list(example: str) -> list:
     previous, element = '', ''
     numbers = []
     for char in example:
-        if char in '+*/-' and (previous.isdigit() or previous == '.'):
+        if char in '%+*/-' and (previous.isdigit() or previous == '.'):
             numbers.extend([element, char])
             element = ''
         else:
@@ -211,6 +223,8 @@ def create_interface(value: str):
         add_number_to_entry(value)
     elif value == '±':
         set_plus_minus()
+    elif value == '%':
+        calculate_percent()
     elif value in operators.keys():
         add_sign_to_entry(value)
     elif value in '=':
@@ -223,7 +237,7 @@ def create_interface(value: str):
         display_expression.insert(END, '0') if not display_expression.get().strip() else None
         display_number.delete(0, END)
         example = get_example_as_list(display_expression.get())[-1]
-        display_number.insert(0, example) if example not in operators.keys()\
+        display_number.insert(0, example) if example not in operators.keys() \
             else display_number.insert(0, '0')
     last_value = value
 
