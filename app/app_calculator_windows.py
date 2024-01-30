@@ -151,7 +151,8 @@ def add_sign_to_entry(value: str):
         display_number.delete(len(display_number.get()) - 1)
 
     display_number.delete(0, END)
-    display_number.insert(0, str(calculate(display_expression.get().strip()[:-1])))
+
+    display_number.insert(0, calculate(display_expression.get().strip()[:-1]))
 
 
 def set_plus_minus():
@@ -167,7 +168,7 @@ def set_plus_minus():
 
 def calculate_percent():
     example = get_example_as_list(display_expression.get().strip())
-    number_index = len(display_expression.get().strip()) - len(example[-2])
+    number_index = len(display_expression.get().strip()) - len(example[-1])
     clear() if len(example) < 3 else None
     result_number = float(example[-1]) / 100 * float(example[-3])
 
@@ -175,6 +176,30 @@ def calculate_percent():
     display_number.delete(0, END)
     display_expression.insert(END, str(result_number))
     display_number.insert(END, str(result_number))
+
+
+def calculate_sqrt():
+    example = get_example_as_list(display_expression.get().strip())
+    number_index = len(display_expression.get().strip()) - len(example[-1])
+    if len(example) < 3 and '-' not in example[0]:
+        result_number = float(example[0]) ** 0.5
+    elif '-' not in example[-1]:
+        result_number = float(example[-1]) ** 0.5
+    else:
+        result_number = 'Problem with < - > in number'
+
+    display_expression.delete(number_index, END)
+    display_number.delete(0, END)
+    display_expression.insert(END, str(result_number))
+    display_number.insert(END, str(result_number))
+
+
+def ce():
+    example = get_example_as_list(display_expression.get().strip())
+    number_index = len(display_expression.get().strip()) - len(example[-1])
+    display_expression.delete(number_index, END)
+    display_number.delete(0, END)
+    display_number.insert(END, '0')
 
 
 def get_example_as_list(example: str) -> list:
@@ -191,7 +216,7 @@ def get_example_as_list(example: str) -> list:
     return numbers
 
 
-def calculate(example: list | str, signs: str = '*/') -> float:
+def calculate(example: list | str, signs: str = '*/') -> float | str:
     list_example = get_example_as_list(example) if isinstance(example, str) else example
     result_example = []
     previous, char = None, None
@@ -200,6 +225,8 @@ def calculate(example: list | str, signs: str = '*/') -> float:
             previous = float(element)
         elif str(element) in signs:
             char = element
+        elif char == '/' and element == '0':
+            return 'Problem with ZeroDivisionError: float division by zero'
         elif char:
             previous = operators[char](float(previous), float(element))
             char = None
@@ -212,6 +239,8 @@ def calculate(example: list | str, signs: str = '*/') -> float:
 
 def create_interface(value: str):
     global last_value
+    if 'Problem' in display_expression.get().strip() or 'Problem' in display_number.get().strip():
+        clear()
     if last_value == '<-' and display_expression.get().strip()[-1] in operators.keys() and value != '<-':
         display_number.delete(0, END)
     if value in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']:
@@ -225,6 +254,10 @@ def create_interface(value: str):
         set_plus_minus()
     elif value == '%':
         calculate_percent()
+    elif value == '√':
+        calculate_sqrt()
+    elif value == 'CE':
+        ce()
     elif value in operators.keys():
         add_sign_to_entry(value)
     elif value in '=':
@@ -243,7 +276,6 @@ def create_interface(value: str):
 
 
 root = Tk()
-
 root.title("Calculator")
 display_expression = Entry(justify=RIGHT)
 display_expression.grid(column=0, row=0, columnspan=5, sticky=NSEW)
