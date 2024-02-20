@@ -109,6 +109,7 @@
 from tkinter import *
 from tkinter.ttk import *
 from operator import add, sub, mul, truediv
+from typing import Literal
 
 button_texts = [
     # ["MC 1 1", "MR 1 1", "MS 1 1", "M+ 1 1", "M- 1 1"],
@@ -118,19 +119,21 @@ button_texts = [
     ['1 1 1', '2 1 1', '3 1 1', "- 1 1", '= 1 2'],
     ['0 2 1', "", '. 1 1', "+ 1 1"],
 ]
-
-last_value = None
-operators = {"+": add, "-": sub, "*": mul, "/": truediv, "%": sub}
+operators = {"+": add, "-": sub, "*": mul, "/": truediv}
 
 
-def clear():
-    display_expression.delete(0, END)
-    display_number.delete(0, END)
-    display_expression.insert(END, '0')
-    display_number.insert(END, '0')
+def clear(last_char: int) -> None:
+    display_expression.delete(len(display_expression.get().strip()) - last_char, END)
+    display_number.delete(len(display_number.get()) - last_char, END)
+
+    display_expression.insert(END, '0') if not display_expression.get().strip() else None
+    display_number.insert(END, '0') if not display_number.get().strip() else None
 
 
 def add_number_to_entry(value: str):
+    display_number.delete(0, END) if display_expression.get().strip()[-1] in operators.keys() else None
+    if str(get_example_as_list(display_expression.get())[-1]).count('.') > 0 and value == '.':
+        return
     if display_expression.get().strip()[-1] in '=':
         display_expression.delete(0, END)
         display_number.delete(0, END)
@@ -149,7 +152,6 @@ def add_sign_to_entry(value: str):
         display_expression.delete(len(display_expression.get()) - 2)
     elif display_expression.get().strip()[-1] in '=':
         display_number.delete(len(display_number.get()) - 1)
-
     display_number.delete(0, END)
 
     display_number.insert(0, calculate(display_expression.get().strip()[:-1]))
@@ -178,6 +180,18 @@ def calculate_percent():
     display_number.insert(END, str(result_number))
 
 
+def calculate_1_div_x():
+    example = get_example_as_list(display_expression.get().strip())
+    number_index = len(display_expression.get().strip()) - len(example[-1])
+    clear(0, END) if len(example) < 3 else None
+    result_number = 1 / float(example[-1])
+
+    display_expression.delete(number_index, END)
+    display_number.delete(0, END)
+    display_expression.insert(END, str(result_number))
+    display_number.insert(END, str(result_number))
+
+
 def calculate_sqrt():
     example = get_example_as_list(display_expression.get().strip())
     number_index = len(display_expression.get().strip()) - len(example[-1])
@@ -194,14 +208,6 @@ def calculate_sqrt():
     display_number.insert(END, str(result_number))
 
 
-def ce():
-    example = get_example_as_list(display_expression.get().strip())
-    number_index = len(display_expression.get().strip()) - len(example[-1])
-    display_expression.delete(number_index, END)
-    display_number.delete(0, END)
-    display_number.insert(END, '0')
-
-
 def get_example_as_list(example: str) -> list:
     previous, element = '', ''
     numbers = []
@@ -214,6 +220,10 @@ def get_example_as_list(example: str) -> list:
         previous = char
     numbers.append(element)
     return numbers
+
+
+def calculate_sign(sign: str) -> None:
+    pass
 
 
 def calculate(example: list | str, signs: str = '*/') -> float | str:
@@ -238,17 +248,10 @@ def calculate(example: list | str, signs: str = '*/') -> float | str:
 
 
 def create_interface(value: str):
-    global last_value
-    if 'Problem' in display_expression.get().strip() or 'Problem' in display_number.get().strip():
-        clear()
-    if last_value == '<-' and display_expression.get().strip()[-1] in operators.keys() and value != '<-':
-        display_number.delete(0, END)
-    if value in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']:
-        display_number.delete(0, END) if last_value in operators.keys() else None
-        add_number_to_entry(value)
-    elif (value == '.' and not display_expression.get().endswith('.')
-          and str(get_example_as_list(display_expression.get())[-1]).count('.') < 1):
-        display_number.delete(0, END) if last_value in operators.keys() else None
+    example = display_expression.get().strip()
+    if 'Problem' in example or 'Problem' in display_number.get().strip():
+        clear(len(example))
+    if value in '0123456789.':
         add_number_to_entry(value)
     elif value == '±':
         set_plus_minus()
@@ -256,23 +259,18 @@ def create_interface(value: str):
         calculate_percent()
     elif value == '√':
         calculate_sqrt()
+    elif value == '1/x':
+        calculate_1_div_x()
     elif value == 'CE':
-        ce()
+        clear(len(get_example_as_list(example)[-1]))
     elif value in operators.keys():
         add_sign_to_entry(value)
     elif value in '=':
         add_sign_to_entry(value)
-    elif value in 'C' or (value in '<-' and '=' in display_expression.get().strip()):
-        clear()
-    elif (value in '<-' and display_expression.get().strip() != '0'
-          and display_expression.get().strip()[-1] not in operators.keys()):
-        display_expression.delete(len(display_expression.get()) - 1)
-        display_expression.insert(END, '0') if not display_expression.get().strip() else None
-        display_number.delete(0, END)
-        example = get_example_as_list(display_expression.get())[-1]
-        display_number.insert(0, example) if example not in operators.keys() \
-            else display_number.insert(0, '0')
-    last_value = value
+    elif value in 'C':
+        clear(len(example) + 1)
+    elif value in '<-' and example != '0' and example[-1] not in operators.keys():
+        clear(1)
 
 
 root = Tk()
