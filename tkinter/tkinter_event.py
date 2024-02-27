@@ -59,6 +59,7 @@ from tkinter import *
 
 def show_key(event):
     root.title(str(event))
+    print(str(event))
 
 
 root = Tk()

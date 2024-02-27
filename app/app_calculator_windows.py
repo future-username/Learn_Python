@@ -112,12 +112,11 @@ from operator import add, sub, mul, truediv
 from typing import Literal
 
 button_texts = [
-    # ["MC 1 1", "MR 1 1", "MS 1 1", "M+ 1 1", "M- 1 1"],
-    ["<- 1 1", "CE 1 1", "C 1 1", '± 1 1', '√ 1 1'],
-    ["7 1 1", "8 1 1", "9 1 1", "/ 1 1", "% 1 1"],
-    ['4 1 1', '5 1 1', '6 1 1', "* 1 1", "1/x 1 1"],
-    ['1 1 1', '2 1 1', '3 1 1', "- 1 1", '= 1 2'],
-    ['0 2 1', "", '. 1 1', "+ 1 1"],
+    ["<- 1 1 <BackSpace>", "CE 1 1", "C 1 1 <Delete>", '± 1 1', '√ 1 1'],
+    ["7 1 1 7", "8 1 1 8", "9 1 1 9", "/ 1 1 /", "% 1 1 %"],
+    ['4 1 1 4', '5 1 1 5', '6 1 1 6', "* 1 1 *", "1/x 1 1"],
+    ['1 1 1 1', '2 1 1 2', '3 1 1 3', "- 1 1 -", '= 1 2 <Return>'],
+    ['0 2 1 0', "", '. 1 1 .', "+ 1 1 +"],
 ]
 operators = {"+": add, "-": sub, "*": mul, "/": truediv}
 
@@ -253,5 +252,7 @@ for y, buttons in enumerate(button_texts):
             _ = Button(text=text.split()[0], command=lambda t=text.split()[0]: create_interface(t))
             # _ = Button(text=text.split()[0], fg='black', command=lambda t=text.split()[0]: create_interface(t))
             _.grid(column=x, row=y + 2, columnspan=int(text.split()[1]), rowspan=int(text.split()[2]), sticky=NSEW)
+        if len(text.split()) > 3:
+            root.bind(text.split()[3], lambda event, value=text.split()[0]: create_interface(value))
 
 root.mainloop()
