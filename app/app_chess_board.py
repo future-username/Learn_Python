@@ -1047,7 +1047,7 @@ text_radiobutton = {
 }
 
 rb_var = StringVar()
-rb_var.set(0)
+rb_var.set('0')
 for index, text in enumerate(text_radiobutton):
     Radiobutton(frame_radiobutton, variable=rb_var, value=text, text=text, fg='black').pack(anchor=W)
 

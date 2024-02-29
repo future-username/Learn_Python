@@ -401,23 +401,11 @@
 
 
 from tkinter import *
-from operator import add, sub, truediv, mul, pow, floordiv, mod
 from typing import Callable, Any
 from functools import reduce
 
-
-SIGN_LABELS = {
-    "+": add,
-    "-": sub,
-    "/": truediv,
-    "*": mul,
-    "**": pow,
-    "//": floordiv,
-    "%": mod
-}
-COUNT_FIELD = 3
-
-TITLE = "Calculate example"
+import json
+import operator
 
 
 class StringNumber:
@@ -484,7 +472,6 @@ class MathExample:
     def __calculate(self) -> None:
         self.__normalize_numbers()
         numbers = (float(field.get()) for field in self.__list_entries)
-        print(list(numbers))
         result = str(reduce(self.__operator, numbers)) if self.__list_entries and self.__check() else 'ERROR'
         self.__result_entry.insert(0, result)
 
@@ -535,11 +522,15 @@ class App:
         self.__root.title(title)
 
         for row, sign_label in enumerate(sign_labels):
-            MathExample(self.__root, self.__amount_field, sign_label, self.__sign_labels[sign_label]).draw_line(row)
+            sign_label_func = getattr(operator, self.__sign_labels[sign_label])
+            MathExample(self.__root, self.__amount_field, sign_label, sign_label_func).draw_line(row)
 
     def draw(self):
         self.__root.mainloop()
 
 
 if __name__ == '__main__':
-    App(TITLE, COUNT_FIELD, SIGN_LABELS).draw()
+    with open("app_calculator_filds.json", "r") as read_file:
+        data = json.load(read_file)
+
+    App(data['TITLE'], data['COUNT_FIELD'], data['SIGN_LABELS']).draw()

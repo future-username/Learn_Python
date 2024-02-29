@@ -1,0 +1,12 @@
+{
+  "SIGN_LABELS": {
+    "+": "add",
+    "-": "sub",
+    "/": "truediv",
+    "*": "mul",
+    "**": "pow",
+    "//": "floordiv",
+    "%": "mod"},
+  "COUNT_FIELD": 3,
+  "TITLE": "Calculate example"
+}
