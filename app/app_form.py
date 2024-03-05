@@ -115,9 +115,9 @@ from tkinter import *
 from typing import Dict, List
 
 LANGUAGES = {
-    "Русский": ['Имя:', 'Фамилия:', 'Отчество:', 'Год рождения:', 'Город:', 'Телефон:', 'Почта:'],
-    "English": ["Name:", "Surname:", "Year:", 'City:', "Phone:", "Mail:"],
-    "Türkçe": ['Ad:', 'Soyadı:', 'Doğum Yılı:', 'Şehir:', 'Telefon:', 'E-posta:']
+    "Русский": [{'Имя:': "", 'Фамилия:': "", 'Отчество:': "", 'Год рождения:': "", 'Город:': "", 'Телефон:': "", 'Почта:': ""}],
+    "English": [{"Name:": "", "Surname:": "", "Year:": "", 'City:': "", "Phone:": "", "Mail:": ""}],
+    "Türkçe": [{'Ad:': "", 'Soyadı:': "", 'Doğum Yılı:': "", 'Şehir:': "", 'Telefon:': "", 'E-posta:': ""}]
 }
 
 

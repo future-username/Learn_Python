@@ -1,0 +1,101 @@
+[
+  {
+    "language": "Русский",
+    "data": [
+      {
+        "label": "Имя:",
+        "entry": ""
+      },
+      {
+        "label": "Фамилия:",
+        "entry": ""
+      },
+      {
+        "label": "Отчество:",
+        "entry": ""
+      },
+      {
+        "label": "Год рождения:",
+        "entry": ""
+      },
+      {
+        "label": "Город:",
+        "entry": ""
+      },
+      {
+        "label": "Телефон:",
+        "entry": ""
+      },
+      {
+        "label": "Почта:",
+        "entry": ""
+      }
+    ]
+  },
+  {
+    "language": "English",
+    "data": [
+      {
+        "label": "Name:",
+        "entry": ""
+      },
+      {
+        "label": "Surname:",
+        "entry": ""
+      },
+      {
+        "label": "Year:",
+        "entry": ""
+      },
+      {
+        "label": "City:",
+        "entry": ""
+      },
+      {
+        "label": "Город:",
+        "entry": ""
+      },
+      {
+        "label": "Phone:",
+        "entry": ""
+      },
+      {
+        "label": "Mail:",
+        "entry": ""
+      }
+    ]
+  },
+  {
+    "language": "Türkçe",
+    "data": [
+      {
+        "label": "Ad:",
+        "entry": ""
+      },
+      {
+        "label": "Soyadı:",
+        "entry": ""
+      },
+      {
+        "label": "Doğum Yılı:",
+        "entry": ""
+      },
+      {
+        "label": "Şehir:",
+        "entry": ""
+      },
+      {
+        "label": "Город:",
+        "entry": ""
+      },
+      {
+        "label": "Telefon:",
+        "entry": ""
+      },
+      {
+        "label": "E-posta:",
+        "entry": ""
+      }
+    ]
+  }
+]
