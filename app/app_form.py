@@ -111,14 +111,136 @@
 # root.mainloop()
 
 
-from tkinter import *
-from typing import Dict, List
+# from tkinter import *
+# from typing import Dict, List
+#
+# LANGUAGES = {
+#     "Русский": [{'Имя:': "", 'Фамилия:': "", 'Отчество:': "", 'Год рождения:': "", 'Город:': "", 'Телефон:': "", 'Почта:': ""}],
+#     "English": [{"Name:": "", "Surname:": "", "Year:": "", 'City:': "", "Phone:": "", "Mail:": ""}],
+#     "Türkçe": [{'Ad:': "", 'Soyadı:': "", 'Doğum Yılı:': "", 'Şehir:': "", 'Telefon:': "", 'E-posta:': ""}]
+# }
+#
+#
+# class Errors:
+#     @staticmethod
+#     def type_error(value, type_value):
+#         raise TypeError(f'{value} this is not {type_value}')
+#
+#
+# class LabelEntry:
+#     def __init__(self, parent, text):
+#         """
+#
+#         :param parent:
+#         :param text:
+#         """
+#         self.frame = Frame(parent)
+#         self.label = Label(master=self.frame, text=text, fg="black")
+#         self.entry = Entry(master=self.frame, bg="white")
+#
+#     def pack(self, *args, **kwargs):
+#         """
+#         Pack frame
+#         :param args:
+#         :param kwargs:
+#         :return:
+#         """
+#         self.frame.pack(*args, **kwargs)
+#         self.label.pack(side=LEFT)
+#         self.entry.pack(side=RIGHT)
+#
+#     def grid(self, *args, **kwargs):
+#         """
+#         Grid frame
+#         :param args:
+#         :param kwargs:
+#         :return:
+#         """
+#         self.frame.grid(*args, **kwargs)
+#         self.label.pack(side=LEFT)
+#         self.entry.pack(side=RIGHT)
+#
+#
+# class ButtonTranslate:
+#     def __init__(self, parent: LabelFrame, language: str, labels: list, frame: LabelFrame):
+#         parent = parent if isinstance(parent, LabelFrame) else Errors.type_error(parent, LabelFrame)
+#         language = language if isinstance(language, str) else Errors.type_error(language, str)
+#         self.labels = labels if isinstance(labels, list) else Errors.type_error(labels, list)
+#         self.frame = frame if isinstance(frame, LabelFrame) else Errors.type_error(frame, LabelFrame)
+#
+#         self.button = Button(parent, text=language, fg="black", command=self.translate_label)
+#
+#     def translate_label(self):
+#         for widget in self.frame.winfo_children():
+#             widget.destroy()
+#
+#         for text in self.labels:
+#             LabelEntry(self.frame, text).pack(fill=X)
+#
+#     def pack(self, *args, **kwargs):
+#         """
+#         Pack button
+#         :param args:
+#         :param kwargs:
+#         :return:
+#         """
+#         self.button.pack(*args, **kwargs)
+#
+#     def grid(self, *args, **kwargs):
+#         """
+#         Grid button
+#         :param args:
+#         :param kwargs:
+#         :return:
+#         """
+#         self.button.grid(*args, **kwargs)
+#
+#
+# class App:
+#     def __init__(
+#             self,
+#             title: str,
+#             languages: Dict[str, List[str]],
+#             frame_buttons_title: str = '',
+#             frame_form_title: str = ''
+#     ):
+#         None if isinstance(languages, dict) else Errors.type_error(languages, dict)
+#         for key in languages.keys():
+#             None if isinstance(key, str) else Errors.type_error(key, str)
+#
+#         for value in languages.values():
+#             None if isinstance(value, list) else Errors.type_error(value, list)
+#             for value_in_list in value:
+#                 None if isinstance(value_in_list, str) else Errors.type_error(value_in_list, str)
+#
+#         self.root = Tk()
+#         None if isinstance(title, str) else Errors.type_error(title, str)
+#         self.root.title(title)
+#
+#         None if isinstance(frame_buttons_title, str) else Errors.type_error(frame_buttons_title, str)
+#         frame_buttons = LabelFrame(text=frame_buttons_title)
+#         frame_buttons.pack()
+#
+#         None if isinstance(frame_form_title, str) else Errors.type_error(frame_form_title, str)
+#         frame_form = LabelFrame(text=frame_form_title)
+#         frame_form.pack()
+#
+#         for index, language in enumerate(languages.keys()):
+#             _ = ButtonTranslate(frame_buttons, language, languages[language], frame_form)
+#             _.grid(column=index, row=len(languages['Русский']))
+#             _.translate_label() if index == 0 else None
+#
+#     def draw(self):
+#         self.root.mainloop()
+#
+#
+# if __name__ == '__main__':
+#     App(title="Form", languages=LANGUAGES, frame_buttons_title='Translate').draw()
 
-LANGUAGES = {
-    "Русский": [{'Имя:': "", 'Фамилия:': "", 'Отчество:': "", 'Год рождения:': "", 'Город:': "", 'Телефон:': "", 'Почта:': ""}],
-    "English": [{"Name:": "", "Surname:": "", "Year:": "", 'City:': "", "Phone:": "", "Mail:": ""}],
-    "Türkçe": [{'Ad:': "", 'Soyadı:': "", 'Doğum Yılı:': "", 'Şehir:': "", 'Telefon:': "", 'E-posta:': ""}]
-}
+
+from tkinter import *
+from tkinter import filedialog
+import json
 
 
 class Errors:
@@ -128,15 +250,17 @@ class Errors:
 
 
 class LabelEntry:
-    def __init__(self, parent, text):
+    def __init__(self, parent, label_text: str, entry_text: str):
         """
 
         :param parent:
-        :param text:
+        :param label_text: str
+        :param entry_text: str
         """
         self.frame = Frame(parent)
-        self.label = Label(master=self.frame, text=text, fg="black")
+        self.label = Label(master=self.frame, text=label_text, fg="black")
         self.entry = Entry(master=self.frame, bg="white")
+        self.entry.insert(0, entry_text)
 
     def pack(self, *args, **kwargs):
         """
@@ -173,9 +297,8 @@ class ButtonTranslate:
     def translate_label(self):
         for widget in self.frame.winfo_children():
             widget.destroy()
-
-        for text in self.labels:
-            LabelEntry(self.frame, text).pack(fill=X)
+        for label in self.labels:
+            LabelEntry(self.frame, label['label'], label['entry']).pack(fill=X)
 
     def pack(self, *args, **kwargs):
         """
@@ -200,39 +323,74 @@ class App:
     def __init__(
             self,
             title: str,
-            languages: Dict[str, List[str]],
             frame_buttons_title: str = '',
             frame_form_title: str = ''
     ):
-        None if isinstance(languages, dict) else Errors.type_error(languages, dict)
-        for key in languages.keys():
-            None if isinstance(key, str) else Errors.type_error(key, str)
-
-        for value in languages.values():
-            None if isinstance(value, list) else Errors.type_error(value, list)
-            for value_in_list in value:
-                None if isinstance(value_in_list, str) else Errors.type_error(value_in_list, str)
+        self.frame_buttons_title = frame_buttons_title if isinstance(frame_buttons_title, str) \
+            else Errors.type_error(frame_buttons_title, str)
+        self.frame_form_title = frame_form_title if isinstance(frame_form_title, str) \
+            else Errors.type_error(frame_form_title, str)
+        # None if isinstance(languages, json) else Errors.type_error(languages, dict)
+        # for key in languages.keys():
+        #     None if isinstance(key, str) else Errors.type_error(key, str)
+        #
+        # for value in languages.values():
+        #     None if isinstance(value, list) else Errors.type_error(value, list)
+        #     for value_in_list in value:
+        #         None if isinstance(value_in_list, str) else Errors.type_error(value_in_list, str)
 
         self.root = Tk()
         None if isinstance(title, str) else Errors.type_error(title, str)
         self.root.title(title)
+        frame_menu = Frame()
+        frame_menu.pack()
+        Button(frame_menu, text='Open', fg="black", command=self.__open_file).pack(side=LEFT)
+        Button(frame_menu, text='Save', fg="black").pack(side=RIGHT)
 
-        None if isinstance(frame_buttons_title, str) else Errors.type_error(frame_buttons_title, str)
-        frame_buttons = LabelFrame(text=frame_buttons_title)
+    def __create_interface(self, languages: json):
+        frame_buttons = LabelFrame(text=self.frame_buttons_title)
         frame_buttons.pack()
 
-        None if isinstance(frame_form_title, str) else Errors.type_error(frame_form_title, str)
-        frame_form = LabelFrame(text=frame_form_title)
+        frame_form = LabelFrame(text=self.frame_form_title)
         frame_form.pack()
 
-        for index, language in enumerate(languages.keys()):
-            _ = ButtonTranslate(frame_buttons, language, languages[language], frame_form)
-            _.grid(column=index, row=len(languages['Русский']))
+        for index, language in enumerate(languages):
+            _ = ButtonTranslate(frame_buttons, language["language"], language["data"], frame_form)
+            _.grid(column=index, row=len(language["data"]))
             _.translate_label() if index == 0 else None
+
+    def __open_file(self):
+        """
+        Open file and add data to Labels
+        :return: None
+        """
+        file_name = filedialog.askopenfilename(filetypes=[("json files", '*.json')])
+        if file_name:
+            with open(file_name, 'r', encoding='UTF-8') as file:
+                file_data = json.load(file)
+            self.__create_interface(file_data) if file_data else None
+
+    def __save_file(self):
+        # data = {
+        #     "form": {
+        #         "title": list_title.get(),
+        #         "list_description": list_description.get(1.0, END),
+        #         "tasks": [(text.children['!checkbutton']['text'].split(':')[1].strip()) for text in added_tasks],
+        #     }
+        # }
+        data = {
+
+        }
+        FILE_PATH = filedialog.asksaveasfilename(
+            defaultextension='.json', filetypes=[("json files", '*.json')],
+            title="Choose filename")
+        if FILE_PATH:
+            with open(FILE_PATH, 'w', encoding='UTF-8') as file:
+                file.write(json.dumps(data))
 
     def draw(self):
         self.root.mainloop()
 
 
 if __name__ == '__main__':
-    App(title="Form", languages=LANGUAGES, frame_buttons_title='Translate').draw()
+    App(title="Form", frame_buttons_title='Translate').draw()

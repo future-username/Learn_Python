@@ -23,6 +23,4 @@ from tkinter.ttk import *
 
 root = Tk()
 
-
-
 root.mainloop()
