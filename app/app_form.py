@@ -285,20 +285,43 @@ class LabelEntry:
         self.entry.pack(side=RIGHT)
 
 
+class SingletonFrame(type):
+    _instances: dict[str, LabelFrame] = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            instance = super().__call__(*args, **kwargs)
+            cls._instances[cls] = instance
+        return cls._instances[cls]
+
+
 class ButtonTranslate:
     def __init__(self, parent: LabelFrame, language: str, labels: list, frame: LabelFrame):
         parent = parent if isinstance(parent, LabelFrame) else Errors.type_error(parent, LabelFrame)
-        language = language if isinstance(language, str) else Errors.type_error(language, str)
+        self.language = language if isinstance(language, str) else Errors.type_error(language, str)
         self.labels = labels if isinstance(labels, list) else Errors.type_error(labels, list)
         self.frame = frame if isinstance(frame, LabelFrame) else Errors.type_error(frame, LabelFrame)
+        self.dict_frames: dict[str, LabelFrame] = {}
 
         self.button = Button(parent, text=language, fg="black", command=self.translate_label)
 
-    def translate_label(self):
-        for widget in self.frame.winfo_children():
-            widget.destroy()
+    def generate_lines(self):
+        for widget in self.dict_frames.items().winfo_children():
+            widget.pack_forget()
         for label in self.labels:
             LabelEntry(self.frame, label['label'], label['entry']).pack(fill=X)
+        self.dict_frames[self.language] = self.frame
+        self.frame.pack_forget()
+
+    def translate_label(self):
+
+        # print(self.frame, self.labels)
+        for widget in self.frame.winfo_children():
+            # widget.destroy()
+            widget.pack_forget()
+        for label in self.labels:
+            LabelEntry(self.frame, label['label'], label['entry']).pack(fill=X)
+        print(self.frame.winfo_children())
 
     def pack(self, *args, **kwargs):
         """
@@ -371,13 +394,6 @@ class App:
             self.__create_interface(file_data) if file_data else None
 
     def __save_file(self):
-        # data = {
-        #     "form": {
-        #         "title": list_title.get(),
-        #         "list_description": list_description.get(1.0, END),
-        #         "tasks": [(text.children['!checkbutton']['text'].split(':')[1].strip()) for text in added_tasks],
-        #     }
-        # }
         data = {
 
         }
