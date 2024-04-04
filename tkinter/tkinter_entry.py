@@ -353,19 +353,69 @@
 # root.mainloop()
 
 
+# from tkinter import *
+#
+#
+# def paste_text():
+#     text_1.insert(0, f'''"<{text.get()}>", - it is the first entry's contents.''')
+#
+#
+# root = Tk()
+#
+# text = Entry(root, width=50)
+# text.pack()
+# text_1 = Entry(root, width=50)
+# text_1.pack()
+# button_paste = Button(root, text='Copy', command=paste_text)
+# button_paste.pack()
+# root.mainloop()
+
+
 from tkinter import *
 
 
+class SingletonFrame(type):
+    _instances: dict = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            instance = super().__call__(*args, **kwargs)
+            cls._instances[cls] = instance
+        return cls._instances[cls]
+
+
+class Data(metaclass=SingletonFrame):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__text = ''
+
+    @property
+    def text(self) -> str:
+        return self.__text
+
+    @text.setter
+    def text(self, value: str):
+        self.__text = value
+
+
+class MyEntry(Entry):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.insert(0, Data().text)
+        root.bind('<Key>', self.update_entry)
+
+    def update_entry(self, _):
+        print(self.get())
+        Data().text = self.get()
+        self.delete(0, END)
+        self.insert(0, Data().text)
+
+
 def paste_text():
-    text_1.insert(0, f'''"<{text.get()}>", - it is the first entry's contents.''')
+    MyEntry().pack()
 
 
 root = Tk()
 
-text = Entry(root, width=50)
-text.pack()
-text_1 = Entry(root, width=50)
-text_1.pack()
-button_paste = Button(root, text='Copy', command=paste_text)
-button_paste.pack()
+Button(root, text='Create', command=paste_text).pack()
 root.mainloop()
