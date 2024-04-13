@@ -411,8 +411,16 @@ class MyEntry(Entry):
         self.insert(0, Data().text)
 
 
+counter = 0
+
+
 def paste_text():
-    MyEntry().pack()
+    global counter
+    if counter % 2 == 0:
+        MyEntry().pack()
+    else:
+        root.winfo_children()[1].destroy()
+    counter += 1
 
 
 root = Tk()
