@@ -149,6 +149,7 @@ class ButtonTranslate:
         # self.labels = labels if isinstance(labels, list) else Errors.type_error(labels, list)
         self.languages_data = languages_data if isinstance(languages_data, list) else Errors.type_error(languages_data,
                                                                                                         list)
+        self.language_name = language_name
         self.frame = frame if isinstance(frame, LabelFrame) else Errors.type_error(frame, LabelFrame)
         self.dict_frames: dict[str, LabelFrame] = {}
         Data().language_data = languages_data
@@ -164,31 +165,36 @@ class ButtonTranslate:
     #     self.frame.pack_forget()
 
     def save_data(self, data: Widget):
-        for i in data.winfo_children():
-            # print(isinstance(i, Entry))
-            if isinstance(i, Entry):
-                print(i.get())
-            else:
-                print(i['text'])
-            # try:
-            #     print(i.get())
-            # except Exception:
-            #     print(i['text'])
+        for language_data in Data().language_data:
+
+            if language_data["language"] == Data().language:
+                for element, language in zip(data.winfo_children(), language_data["data"]):
+                    if isinstance(element, Entry):
+                        print(f"{element.get()=}, {language=}")
+                        print(element.get(), language)
+                    else:
+                        print(element['text'], language)
+
+            # for data in Data().language_data:
+            #     print(self.language_name)
+            #     if data["language"] == self.language_name:
+            #         for label in data["data"]:
+            #             if isinstance(element, Entry):
+            #                 print(1, element.get(), label)
+            #             else:
+            #                 print(element['text'], label)
 
     def translate_label(self):
         for widget in self.frame.winfo_children():
             self.save_data(widget)
             widget.destroy()
 
-        from pprint import pprint
-        pprint(Data().language_data)
-
         for data in Data().language_data:
-            for label in data["data"]:
-                LabelEntry(self.frame, label['label'], label['entry']).pack(fill=X)
-
-        # self.dict_frames[self.language] = self.frame
-        # self.frame.pack_forget()
+            # print(self.language_name, 2)
+            if data["language"] == self.language_name:
+                for label in data["data"]:
+                    LabelEntry(self.frame, label['label'], label['entry']).pack(fill=X)
+        Data().language = self.language_name
 
     def pack(self, *args, **kwargs):
         """
