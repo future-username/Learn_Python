@@ -151,7 +151,7 @@ class ButtonTranslate:
                                                                                                         list)
         self.language_name = language_name
         self.frame = frame if isinstance(frame, LabelFrame) else Errors.type_error(frame, LabelFrame)
-        self.dict_frames: dict[str, LabelFrame] = {}
+        self.data_list = []
         Data().language_data = languages_data
 
         self.button = Button(parent, text=language_name, fg="black", command=self.translate_label)
@@ -164,25 +164,33 @@ class ButtonTranslate:
     #     self.dict_frames[self.language] = self.frame
     #     self.frame.pack_forget()
 
-    def save_data(self, data: Widget):
+    def save_data(self, data: Widget) -> None:
+        data_dict = {}
+        self.data_list.append({'language': Data().language})
         for language_data in Data().language_data:
-
             if language_data["language"] == Data().language:
                 for element, language in zip(data.winfo_children(), language_data["data"]):
                     if isinstance(element, Entry):
-                        print(f"{element.get()=}, {language=}")
-                        print(element.get(), language)
+                        data_dict['entry'] = element.get()
                     else:
-                        print(element['text'], language)
+                        data_dict['label'] = element['text']
 
-            # for data in Data().language_data:
-            #     print(self.language_name)
-            #     if data["language"] == self.language_name:
-            #         for label in data["data"]:
-            #             if isinstance(element, Entry):
-            #                 print(1, element.get(), label)
-            #             else:
-            #                 print(element['text'], label)
+                if len(data_dict.keys()) > 1:
+                    self.data_list.append(data_dict)
+                    data_dict = {}
+        # self.update_data()
+
+    def update_data(self) -> None:
+        index_dict = 0
+        for index, language_data in enumerate(Data().language_data):
+            if language_data["language"] == Data().language:
+                # print(language_data)
+                index_dict = index
+        import pprint
+        # pprint.pprint(Data().language_data)
+        print(self.data_list)
+        Data().language_data[index_dict] = self.data_list
+        # pprint.pprint(Data().language_data)
 
     def translate_label(self):
         for widget in self.frame.winfo_children():
@@ -190,10 +198,10 @@ class ButtonTranslate:
             widget.destroy()
 
         for data in Data().language_data:
-            # print(self.language_name, 2)
             if data["language"] == self.language_name:
                 for label in data["data"]:
                     LabelEntry(self.frame, label['label'], label['entry']).pack(fill=X)
+        self.update_data()
         Data().language = self.language_name
 
     def pack(self, *args, **kwargs):
