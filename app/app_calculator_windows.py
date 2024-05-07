@@ -109,7 +109,6 @@
 from tkinter import *
 from tkinter.ttk import *
 from operator import add, sub, mul, truediv
-from typing import Literal
 
 button_texts = [
     ["<- 1 1 <BackSpace>", "CE 1 1", "C 1 1 <Delete>", '± 1 1', '√ 1 1'],
