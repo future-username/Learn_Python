@@ -85,24 +85,26 @@ class SingletonForm(type):
 class Data(metaclass=SingletonForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.__language = ''
-        self.__language_data = {}
+        self.__languages_data: dict = {}
+        self.language_name = ''
+
+    def get_language(self, language: str) -> list:
+        for language_data in self.language_data:
+            if language_data["language"] == language:
+                return language_data['data']
+
+    def set_language(self, language: str, data: list[dict]):
+        for index, data in enumerate(self.__languages_data):
+            if data["language"] == language:
+                self.languages_data[index]['data'] = data
 
     @property
-    def language(self) -> str:
-        return self.__language
+    def languages_data(self):
+        return self.__languages_data
 
-    @language.setter
-    def language(self, value: str):
-        self.__language = value
-
-    @property
-    def language_data(self) -> dict:
-        return self.__language_data
-
-    @language_data.setter
-    def language_data(self, value: dict):
-        self.__language_data = value
+    @languages_data.setter
+    def languages_data(self, data: dict) -> None:
+        self.__languages_data = data
 
 
 class LabelEntry:
@@ -147,12 +149,12 @@ class ButtonTranslate:
         parent = parent if isinstance(parent, LabelFrame) else Errors.type_error(parent, LabelFrame)
         # self.language = language if isinstance(language, str) else Errors.type_error(language, str)
         # self.labels = labels if isinstance(labels, list) else Errors.type_error(labels, list)
-        self.languages_data = languages_data if isinstance(languages_data, list) else Errors.type_error(languages_data,
-                                                                                                        list)
+        # self.languages_data = languages_data if isinstance(languages_data, list) else Errors.type_error(languages_data,
+        #                                                                                                 list)
         self.language_name = language_name
+        Data().language_name = self.language_name
         self.frame = frame if isinstance(frame, LabelFrame) else Errors.type_error(frame, LabelFrame)
-        self.data_list = {}
-        Data().language_data = languages_data
+        self.data_list: list[dict] = []
 
         self.button = Button(parent, text=language_name, fg="black", command=self.translate_label)
 
@@ -184,58 +186,49 @@ class ButtonTranslate:
     #                 # data_dict = {}
 
     def save_data(self, data: Widget) -> None:
-        index_dict = 0
-        # data_dict = {}
-        for index, language_data in enumerate(Data().language_data):
-            if language_data["language"] == Data().language:
-                index_dict = index
+        data_dict = {}
 
         for element in data.winfo_children():
+            if 'label' in data_dict.keys():
+                self.data_list.append(data_dict)
+                data_dict.clear()
             if isinstance(element, Entry):
-                print(element.get())
-                self.data_list['entry'] = element.get()
+                data_dict['entry'] = element.get()
             else:
-                self.data_list['label'] = element['text']
+                data_dict['label'] = element['text']
 
-        # Data().language_data[index_dict] = data_dict
+        Data().set_language(Data().language_name, self.data_list)
 
-    def update_data(self) -> None:
-        index_dict = 0
-        for index, language_data in enumerate(Data().language_data):
-            if language_data["language"] == Data().language:
-                index_dict = index
-        # print(self.data_list)
-        # print("\n" * 2)
-        # print(Data().language_data[index_dict])
-        print(Data().language_data[index_dict]['data'])
-        Data().language_data[index_dict]['data'].clear()
-        Data().language_data[index_dict]['data'].append(self.data_list)
-        # print(Data().language, Data().language_data[index_dict])
+    # def update_data(self) -> None:
+    #     index_dict = 0
+    #     for index, language_data in enumerate(Data().language_data):
+    #         if language_data["language"] == Data().language:
+    #             index_dict = index
+    #     # print(self.data_list)
+    #     # print("\n" * 2)
+    #     # print(Data().language_data[index_dict])
+    #     print(Data().language_data[index_dict]['data'])
+    #     Data().language_data[index_dict]['data'].clear()
+    #     Data().language_data[index_dict]['data'].append(self.data_list)
+    #     # print(Data().language, Data().language_data[index_dict])
 
     def delete_current_widget(self):
-        c = False
-        for widget in self.frame.winfo_children():
+        for _ in self.frame.winfo_children():
             self.data_list.clear()
-            # self.save_data(widget)
-            # widget.destroy()
-            # c = True
         for widget in self.frame.winfo_children():
             self.save_data(widget)
         for widget in self.frame.winfo_children():
             widget.destroy()
-            c = True
-
-        if c:
-            self.update_data()
 
     def translate_label(self):
         self.delete_current_widget()
 
-        for data in Data().language_data:
+        for data in Data().languages_data:
             if data["language"] == self.language_name:
                 for label in data["data"]:
                     LabelEntry(self.frame, label['label'], label['entry']).pack(fill=X)
-        Data().language = self.language_name
+        Data().language_name = self.language_name
+
 
     def pack(self, *args, **kwargs):
         """
@@ -290,8 +283,9 @@ class App:
 
         frame_form = LabelFrame(text=self.frame_form_title)
         frame_form.pack()
+        Data().languages_data = languages
         for index, language in enumerate(languages):
-            # _ = ButtonTranslate(frame_buttons, language["language"], language["data"], frame_form)
+            _ = ButtonTranslate(frame_buttons, language["language"], language["data"], frame_form)
             _ = ButtonTranslate(frame_buttons, language["language"], languages, frame_form)
             _.grid(column=index, row=len(language["data"]))
             _.translate_label() if index == 0 else None
@@ -323,8 +317,4 @@ class App:
 
 
 if __name__ == '__main__':
-    # App(title="Form", frame_buttons_title='Translate').draw()
-    data = Data()
-    print(data.__dict__)
-    # data.update(language, updated_data)
-    # data.get(language)
+    App(title="Form", frame_buttons_title='Translate').draw()
