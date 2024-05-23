@@ -107,83 +107,72 @@ class Data(metaclass=SingletonForm):
         self.__languages_data = data
 
 
-# todo add methods: delete and get_data
-class LabelEntry:
-    def __init__(self, parent, label_text: str, entry_text: str):
+class LabelEntry(Frame):
+    def __init__(self, parent, label_text: str, entry_text: str, *args, **kwargs):
         """
-
         :param parent:
         :param label_text: str
         :param entry_text: str
         """
-        self.frame = Frame(parent)
-        self.label = Label(master=self.frame, text=label_text, fg="black")
-        self.entry = Entry(master=self.frame, bg="white")
-        self.entry.insert(0, entry_text)
+        super().__init__(*args, **kwargs)
+        self.__frame = Frame(parent)
 
-    def pack(self, *args, **kwargs):
-        """
-        Pack frame
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        self.frame.pack(*args, **kwargs)
-        self.label.pack(side=LEFT)
-        self.entry.pack(side=RIGHT)
+        self.__entry = Entry(master=self.__frame, bg="white")
+        self.__entry.insert(0, entry_text)
+        self.__entry.pack(side=RIGHT)
 
-    def grid(self, *args, **kwargs):
-        """
-        Grid frame
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        self.frame.grid(*args, **kwargs)
-        self.label.pack(side=LEFT)
-        self.entry.pack(side=RIGHT)
+        Label(master=self.__frame, text=label_text, fg="black").pack(side=LEFT)
+
+    def get_data(self) -> str:
+        return self.__entry.get()
+
+
+class Form(Frame, metaclass=SingletonForm):
+    def __init__(self, language_name: str, frame: LabelFrame, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__language_name = language_name if isinstance(language_name, str) \
+            else Errors.type_error(language_name, str)
+        self.__frame = frame
+        self.__data_list: list[dict] = []
+
+    def update(self):
+        for label in Data().get_language(self.__language_name):
+            label_entry = LabelEntry(self.__frame, label['label'], label['entry'])
+            label_entry.pack(fill=X)
+
+    def save_data(self, data: Widget) -> None:
+        data_dict = {}
+        for element in data.winfo_children():
+            if isinstance(element, Entry):
+                data_dict['entry'] = element.get()
+                self.__data_list.append(data_dict)
+                data_dict = {}
+            else:
+                data_dict['label'] = element['text']
+
+        name = self.__language_name if not Data().language_name else Data().language_name
+        Data().set_language(name, self.__data_list)
+
+    def delete_current_widget(self):
+        self.__data_list.clear()
+        for widget in self.frame.winfo_children():
+            print(widget)
+            self.save_data(widget)
+        for widget in self.frame.winfo_children():
+            widget.destroy()
 
 
 class ButtonTranslate:
     def __init__(self, parent: LabelFrame, language_name: str, frame: LabelFrame):
         parent = parent if isinstance(parent, LabelFrame) else Errors.type_error(parent, LabelFrame)
         self.language_name = language_name
-        # Data().language_name = self.language_name
         self.frame = frame if isinstance(frame, LabelFrame) else Errors.type_error(frame, LabelFrame)
         self.data_list: list[dict] = []
 
         self.button = Button(parent, text=language_name, fg="black", command=self.translate_label)
 
-    # def generate_lines(self):
-    #     for widget in self.dict_frames.items().winfo_children():
-    #         widget.pack_forget()
-    #     for label in self.labels:
-    #         LabelEntry(self.frame, label['label'], label['entry']).pack(fill=X)
-    #     self.dict_frames[self.language] = self.frame
-    #     self.frame.pack_forget()
-
-    # def save_data(self, data: Widget) -> None:
-    #     data_dict = {}
-    #     if not self.data_list:
-    #         self.data_list.update({'language': Data().language})
-    #         self.data_list.update({"data": []})
-    #     for language_data in Data().language_data:
-    #         if language_data["language"] == Data().language:
-    #             for element, language in zip(data.winfo_children(), language_data["data"]):
-    #                 if isinstance(element, Entry):
-    #                     data_dict['entry'] = element.get()
-    #                 else:
-    #                     data_dict['label'] = element['text']
-    #
-    #             if len(data_dict.keys()) > 1:
-    #                 self.data_list['data'].append(data_dict)
-    #                 # print(self.data_list)
-    #                 break
-    #                 # data_dict = {}
-
     def save_data(self, data: Widget) -> None:
         data_dict = {}
-
         for element in data.winfo_children():
             if isinstance(element, Entry):
                 data_dict['entry'] = element.get()
@@ -193,21 +182,7 @@ class ButtonTranslate:
                 data_dict['label'] = element['text']
 
         name = self.language_name if not Data().language_name else Data().language_name
-        # print(name)
         Data().set_language(name, self.data_list)
-
-    # def update_data(self) -> None:
-    #     index_dict = 0
-    #     for index, language_data in enumerate(Data().language_data):
-    #         if language_data["language"] == Data().language:
-    #             index_dict = index
-    #     # print(self.data_list)
-    #     # print("\n" * 2)
-    #     # print(Data().language_data[index_dict])
-    #     print(Data().language_data[index_dict]['data'])
-    #     Data().language_data[index_dict]['data'].clear()
-    #     Data().language_data[index_dict]['data'].append(self.data_list)
-    #     # print(Data().language, Data().language_data[index_dict])
 
     def delete_current_widget(self):
         self.data_list.clear()
@@ -220,6 +195,8 @@ class ButtonTranslate:
     def translate_label(self):
 
         self.delete_current_widget()
+
+        Form(self.language_name)
 
         for label in Data().get_language(self.language_name):
             LabelEntry(self.frame, label['label'], label['entry']).pack(fill=X)
