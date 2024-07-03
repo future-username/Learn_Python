@@ -249,44 +249,8 @@ class Errors:
         raise TypeError(f'{value} this is not {type_value}')
 
 
-class LabelEntry:
-    def __init__(self, parent, label_text: str, entry_text: str):
-        """
-
-        :param parent:
-        :param label_text: str
-        :param entry_text: str
-        """
-        self.frame = Frame(parent)
-        self.label = Label(master=self.frame, text=label_text, fg="black")
-        self.entry = Entry(master=self.frame, bg="white")
-        self.entry.insert(0, entry_text)
-
-    def pack(self, *args, **kwargs):
-        """
-        Pack frame
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        self.frame.pack(*args, **kwargs)
-        self.label.pack(side=LEFT)
-        self.entry.pack(side=RIGHT)
-
-    def grid(self, *args, **kwargs):
-        """
-        Grid frame
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        self.frame.grid(*args, **kwargs)
-        self.label.pack(side=LEFT)
-        self.entry.pack(side=RIGHT)
-
-
-class SingletonFrame(type):
-    _instances: dict[str, LabelFrame] = {}
+class SingletonForm(type):
+    _instances = {}
 
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
@@ -295,33 +259,98 @@ class SingletonFrame(type):
         return cls._instances[cls]
 
 
+class Data(metaclass=SingletonForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__languages_data: dict = {}
+        self.language_name = ''
+
+    def get_language(self, language: str) -> list:
+        for item in self.__languages_data:
+            if item["language"] == language:
+                return item['data']
+
+    def set_language(self, language: str, new_data: list[dict]):
+        for index, data in enumerate(self.__languages_data):
+            if data["language"] == language:
+                self.languages_data[index]['data'] = new_data
+
+    @property
+    def languages_data(self):
+        return self.__languages_data
+
+    @languages_data.setter
+    def languages_data(self, data: dict) -> None:
+        self.__languages_data = data
+
+
+class LabelEntry(Frame):
+    def __init__(self, parent, label_text: str, entry_text: str, *args, **kwargs):
+        """
+        :param parent:
+        :param label_text: str
+        :param entry_text: str
+        """
+        super().__init__(parent, *args, **kwargs)
+
+        self.__entry = Entry(master=self, bg="white")
+        self.__entry.insert(0, entry_text)
+        self.__entry.pack(side=RIGHT)
+
+        self.__label = Label(master=self, text=label_text, fg="black")
+        self.__label.pack(side=LEFT)
+
+    def get_data(self) -> dict[str: str]:
+        return {self.__label['text']: self.__entry.get()}
+
+
+class Form(LabelFrame):
+    def __init__(self, language: str, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.__language = language
+        self['text'] = self.__language
+        self.pack()
+
+        self.__label_entries: LabelEntry | list = []
+
+    def change(self):
+        for label in Data().get_language(self.__language):
+            label = LabelEntry(self, label['label'], label['entry'])
+            label.pack(fill=X)
+            self.__label_entries.append(label)
+
+        Data().language_name = self.__language
+
+    def get_list_data(self) -> list:
+        result = []
+        for label in self.__label_entries:
+            result.append(label.get_data())
+        return result
+
+
 class ButtonTranslate:
-    def __init__(self, parent: LabelFrame, language: str, labels: list, frame: LabelFrame):
-        parent = parent if isinstance(parent, LabelFrame) else Errors.type_error(parent, LabelFrame)
-        self.language = language if isinstance(language, str) else Errors.type_error(language, str)
-        self.labels = labels if isinstance(labels, list) else Errors.type_error(labels, list)
-        self.frame = frame if isinstance(frame, LabelFrame) else Errors.type_error(frame, LabelFrame)
-        self.dict_frames: dict[str, LabelFrame] = {}
+    __previous_form: Form | None = None
 
-        self.button = Button(parent, text=language, fg="black", command=self.translate_label)
+    def __init__(self, parent: LabelFrame, language_name: str):
+        self.parent = parent if isinstance(parent, LabelFrame) else Errors.type_error(parent, LabelFrame)
+        self.language_name = language_name
 
-    def generate_lines(self):
-        for widget in self.dict_frames.items().winfo_children():
-            widget.pack_forget()
-        for label in self.labels:
-            LabelEntry(self.frame, label['label'], label['entry']).pack(fill=X)
-        self.dict_frames[self.language] = self.frame
-        self.frame.pack_forget()
+        self.button = Button(parent, text=language_name, fg="black", command=self.change_form)
 
-    def translate_label(self):
+        self.__data_list: list[dict] = []
+        self.__data_dict = {}
 
-        # print(self.frame, self.labels)
-        for widget in self.frame.winfo_children():
-            # widget.destroy()
-            widget.pack_forget()
-        for label in self.labels:
-            LabelEntry(self.frame, label['label'], label['entry']).pack(fill=X)
-        print(self.frame.winfo_children())
+    def change_form(self):
+        if self.__class__.__previous_form:
+
+            print(self.__class__.__previous_form.get_list_data())
+            Data().set_language(Data().language_name, self.__class__.__previous_form.get_list_data())
+            self.__class__.__previous_form.destroy()
+
+        form = Form(self.language_name)
+        form.change()
+        self.__class__.__previous_form = form
 
     def pack(self, *args, **kwargs):
         """
@@ -353,14 +382,6 @@ class App:
             else Errors.type_error(frame_buttons_title, str)
         self.frame_form_title = frame_form_title if isinstance(frame_form_title, str) \
             else Errors.type_error(frame_form_title, str)
-        # None if isinstance(languages, json) else Errors.type_error(languages, dict)
-        # for key in languages.keys():
-        #     None if isinstance(key, str) else Errors.type_error(key, str)
-        #
-        # for value in languages.values():
-        #     None if isinstance(value, list) else Errors.type_error(value, list)
-        #     for value_in_list in value:
-        #         None if isinstance(value_in_list, str) else Errors.type_error(value_in_list, str)
 
         self.root = Tk()
         None if isinstance(title, str) else Errors.type_error(title, str)
@@ -374,13 +395,11 @@ class App:
         frame_buttons = LabelFrame(text=self.frame_buttons_title)
         frame_buttons.pack()
 
-        frame_form = LabelFrame(text=self.frame_form_title)
-        frame_form.pack()
-
+        Data().languages_data = languages
         for index, language in enumerate(languages):
-            _ = ButtonTranslate(frame_buttons, language["language"], language["data"], frame_form)
+            _ = ButtonTranslate(frame_buttons, language["language"])
             _.grid(column=index, row=len(language["data"]))
-            _.translate_label() if index == 0 else None
+            _.change_form() if index == 0 else None
 
     def __open_file(self):
         """
@@ -393,16 +412,16 @@ class App:
                 file_data = json.load(file)
             self.__create_interface(file_data) if file_data else None
 
-    def __save_file(self):
-        data = {
-
-        }
-        FILE_PATH = filedialog.asksaveasfilename(
-            defaultextension='.json', filetypes=[("json files", '*.json')],
-            title="Choose filename")
-        if FILE_PATH:
-            with open(FILE_PATH, 'w', encoding='UTF-8') as file:
-                file.write(json.dumps(data))
+    # def __save_file(self):
+    #     data = {
+    #
+    #     }
+    #     file_name = filedialog.asksaveasfilename(
+    #         defaultextension='.json', filetypes=[("json files", '*.json')],
+    #         title="Choose filename")
+    #     if file_name:
+    #         with open(file_name, 'w', encoding='UTF-8') as file:
+    #             file.write(json.dumps(data))
 
     def draw(self):
         self.root.mainloop()
