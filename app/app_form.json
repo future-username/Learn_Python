@@ -1,1 +1,105 @@
-[{"language": "\u0420\u0443\u0441\u0441\u043a\u0438\u0439", "data": [{"label": "\u0418\u043c\u044f:", "entry": ""}, {"label": "\u0424\u0430\u043c\u0438\u043b\u0438\u044f:", "entry": ""}, {"label": "\u041e\u0442\u0447\u0435\u0441\u0442\u0432\u043e:", "entry": ""}, {"label": "\u0413\u043e\u0434 \u0440\u043e\u0436\u0434\u0435\u043d\u0438\u044f:", "entry": ""}, {"label": "\u0413\u043e\u0440\u043e\u0434:", "entry": ""}, {"label": "\u0422\u0435\u043b\u0435\u0444\u043e\u043d:", "entry": ""}, {"label": "\u041f\u043e\u0447\u0442\u0430:", "entry": ""}]}, {"language": "English", "data": [{"label": "Name:", "entry": ""}, {"label": "Surname:", "entry": ""}, {"label": "Year:", "entry": ""}, {"label": "City:", "entry": ""}, {"label": "\u0413\u043e\u0440\u043e\u0434:", "entry": ""}, {"label": "Phone:", "entry": ""}, {"label": "Mail:", "entry": ""}]}, {"language": "T\u00fcrk\u00e7e", "data": [{"label": "Ad:", "entry": ""}, {"label": "Soyad\u0131:", "entry": ""}, {"label": "Do\u011fum Y\u0131l\u0131:", "entry": ""}, {"label": "\u015eehir:", "entry": ""}, {"label": "\u0413\u043e\u0440\u043e\u0434:", "entry": ""}, {"label": "Telefon:", "entry": ""}, {"label": "E-posta:", "entry": ""}]}]
+[
+    {
+        "language": "\u0420\u0443\u0441\u0441\u043a\u0438\u0439",
+        "data": [
+            {
+                "label": "\u0418:",
+                "entry": ""
+            },
+            {
+                "label": "\u0418\u043c\u044f:",
+                "entry": ""
+            },
+            {
+                "label": "\u0424\u0430\u043c\u0438\u043b\u0438\u044f:",
+                "entry": ""
+            },
+            {
+                "label": "\u041e\u0442\u0447\u0435\u0441\u0442\u0432\u043e:",
+                "entry": ""
+            },
+            {
+                "label": "\u0413\u043e\u0434 \u0440\u043e\u0436\u0434\u0435\u043d\u0438\u044f:",
+                "entry": ""
+            },
+            {
+                "label": "\u0413\u043e\u0440\u043e\u0434:",
+                "entry": ""
+            },
+            {
+                "label": "\u0422\u0435\u043b\u0435\u0444\u043e\u043d:",
+                "entry": ""
+            },
+            {
+                "label": "\u041f\u043e\u0447\u0442\u0430:",
+                "entry": ""
+            }
+        ]
+    },
+    {
+        "language": "English",
+        "data": [
+            {
+                "label": "Name:",
+                "entry": ""
+            },
+            {
+                "label": "Surname:",
+                "entry": ""
+            },
+            {
+                "label": "Year:",
+                "entry": ""
+            },
+            {
+                "label": "City:",
+                "entry": ""
+            },
+            {
+                "label": "\u0413\u043e\u0440\u043e\u0434:",
+                "entry": ""
+            },
+            {
+                "label": "Phone:",
+                "entry": ""
+            },
+            {
+                "label": "Mail:",
+                "entry": ""
+            }
+        ]
+    },
+    {
+        "language": "T\u00fcrk\u00e7e",
+        "data": [
+            {
+                "label": "Ad:",
+                "entry": ""
+            },
+            {
+                "label": "Soyad\u0131:",
+                "entry": ""
+            },
+            {
+                "label": "Do\u011fum Y\u0131l\u0131:",
+                "entry": ""
+            },
+            {
+                "label": "\u015eehir:",
+                "entry": ""
+            },
+            {
+                "label": "\u0413\u043e\u0440\u043e\u0434:",
+                "entry": ""
+            },
+            {
+                "label": "Telefon:",
+                "entry": ""
+            },
+            {
+                "label": "E-posta:",
+                "entry": ""
+            }
+        ]
+    }
+]

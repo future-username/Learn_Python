@@ -115,7 +115,8 @@
 # from typing import Dict, List
 #
 # LANGUAGES = {
-#     "Русский": [{'Имя:': "", 'Фамилия:': "", 'Отчество:': "", 'Год рождения:': "", 'Город:': "", 'Телефон:': "", 'Почта:': ""}],
+#     "Русский": [{'Имя:': "", 'Фамилия:': "", 'Отчество:': "", 'Год рождения:': "", 'Город:': "",
+#     'Телефон:': "", 'Почта:': ""}],
 #     "English": [{"Name:": "", "Surname:": "", "Year:": "", 'City:': "", "Phone:": "", "Mail:": ""}],
 #     "Türkçe": [{'Ad:': "", 'Soyadı:': "", 'Doğum Yılı:': "", 'Şehir:': "", 'Telefon:': "", 'E-posta:': ""}]
 # }
@@ -239,7 +240,7 @@
 
 
 from tkinter import *
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 import json
 
 
@@ -348,7 +349,6 @@ class ButtonTranslate:
         self.__data_dict = {}
 
     def change_form(self):
-        print(self.__class__.__previous_form)
         if self.__class__.__previous_form:
             Data().set_language(Data().language_name, self.__class__.__previous_form.get_list_data())
             self.__class__.__previous_form.destroy()
@@ -411,7 +411,7 @@ class App:
         Data().languages_data = languages
         for index, language in enumerate(languages):
             _ = ButtonTranslate(self.__frame_buttons, language["language"])
-            _.grid(column=index, row=len(language["data"]))
+            _.pack(side=LEFT)
             _.change_form() if index == 0 else None
 
     def __open_file(self):
@@ -427,7 +427,10 @@ class App:
         if file_name:
             with open(file_name, 'r', encoding='UTF-8') as file:
                 file_data = json.load(file)
-            self.__create_interface(file_data) if file_data else None
+            try:
+                self.__create_interface(file_data) if file_data else None
+            except TypeError:
+                messagebox.showerror(message='Open file with form')
 
     @staticmethod
     def __save_file():
@@ -437,7 +440,7 @@ class App:
             title="Choose filename")
         if file_name:
             with open(file_name, 'w', encoding='UTF-8') as file:
-                file.write(json.dumps(list(data)))
+                file.write(json.dumps(list(data), indent=4))
 
     def draw(self):
         self.root.mainloop()
