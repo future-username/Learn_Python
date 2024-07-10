@@ -275,6 +275,9 @@ class Data(metaclass=SingletonForm):
             if data["language"] == language:
                 self.languages_data[index]['data'] = new_data
 
+    def get_languages_data(self) -> dict:
+        return self.__languages_data
+
     @property
     def languages_data(self):
         return self.__languages_data
@@ -282,6 +285,9 @@ class Data(metaclass=SingletonForm):
     @languages_data.setter
     def languages_data(self, data: dict) -> None:
         self.__languages_data = data
+
+    def clean_data(self):
+        self.__languages_data.clear()
 
 
 class LabelEntry(Frame):
@@ -301,7 +307,7 @@ class LabelEntry(Frame):
         self.__label.pack(side=LEFT)
 
     def get_data(self) -> dict[str: str]:
-        return {self.__label['text']: self.__entry.get()}
+        return {'label': self.__label['text'], 'entry': self.__entry.get()}
 
 
 class Form(LabelFrame):
@@ -342,9 +348,8 @@ class ButtonTranslate:
         self.__data_dict = {}
 
     def change_form(self):
+        print(self.__class__.__previous_form)
         if self.__class__.__previous_form:
-
-            print(self.__class__.__previous_form.get_list_data())
             Data().set_language(Data().language_name, self.__class__.__previous_form.get_list_data())
             self.__class__.__previous_form.destroy()
 
@@ -370,6 +375,12 @@ class ButtonTranslate:
         """
         self.button.grid(*args, **kwargs)
 
+    @classmethod
+    def destroy(cls):
+        if cls.__previous_form:
+            cls.__previous_form.destroy()
+            cls.__previous_form = None
+
 
 class App:
     def __init__(
@@ -383,21 +394,23 @@ class App:
         self.frame_form_title = frame_form_title if isinstance(frame_form_title, str) \
             else Errors.type_error(frame_form_title, str)
 
+        self.__frame_buttons = None
+
         self.root = Tk()
         None if isinstance(title, str) else Errors.type_error(title, str)
         self.root.title(title)
         frame_menu = Frame()
         frame_menu.pack()
         Button(frame_menu, text='Open', fg="black", command=self.__open_file).pack(side=LEFT)
-        Button(frame_menu, text='Save', fg="black").pack(side=RIGHT)
+        Button(frame_menu, text='Save', fg="black", command=self.__save_file).pack(side=RIGHT)
 
     def __create_interface(self, languages: json):
-        frame_buttons = LabelFrame(text=self.frame_buttons_title)
-        frame_buttons.pack()
+        self.__frame_buttons = LabelFrame(text=self.frame_buttons_title)
+        self.__frame_buttons.pack()
 
         Data().languages_data = languages
         for index, language in enumerate(languages):
-            _ = ButtonTranslate(frame_buttons, language["language"])
+            _ = ButtonTranslate(self.__frame_buttons, language["language"])
             _.grid(column=index, row=len(language["data"]))
             _.change_form() if index == 0 else None
 
@@ -406,22 +419,25 @@ class App:
         Open file and add data to Labels
         :return: None
         """
+        ButtonTranslate.destroy()
+        self.__frame_buttons.destroy() if self.__frame_buttons else None
+        Data().clean_data()
+
         file_name = filedialog.askopenfilename(filetypes=[("json files", '*.json')])
         if file_name:
             with open(file_name, 'r', encoding='UTF-8') as file:
                 file_data = json.load(file)
             self.__create_interface(file_data) if file_data else None
 
-    # def __save_file(self):
-    #     data = {
-    #
-    #     }
-    #     file_name = filedialog.asksaveasfilename(
-    #         defaultextension='.json', filetypes=[("json files", '*.json')],
-    #         title="Choose filename")
-    #     if file_name:
-    #         with open(file_name, 'w', encoding='UTF-8') as file:
-    #             file.write(json.dumps(data))
+    @staticmethod
+    def __save_file():
+        data = Data().get_languages_data()
+        file_name = filedialog.asksaveasfilename(
+            defaultextension='.json', filetypes=[("json files", '*.json')],
+            title="Choose filename")
+        if file_name:
+            with open(file_name, 'w', encoding='UTF-8') as file:
+                file.write(json.dumps(list(data)))
 
     def draw(self):
         self.root.mainloop()
