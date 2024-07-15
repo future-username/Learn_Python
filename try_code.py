@@ -266,47 +266,79 @@
 #     App(title="Form", frame_buttons_title='Translate').draw()
 
 
-import tkinter as tk
+# import tkinter as tk
+#
+#
+# class Command:
+#     def __init__(self, calculator):
+#         self.calculator = calculator
+#
+#     def execute(self):
+#         return self.calculator.calculate()
+#
+#
+#
+#
+#
+# class Calculator:
+#     def __init__(self):
+#         self.root = tk.Tk()
+#         self.entry1 = tk.Entry(self.root)
+#         self.entry2 = tk.Entry(self.root)
+#         self.button = tk.Button(self.root, text="Calculate", command=self.calculate)
+#         self.result = tk.StringVar()
+#         self.label = tk.Label(self.root, textvariable=self.result)
+#
+#         self.entry1.pack()
+#         self.entry2.pack()
+#         self.button.pack()
+#         self.label.pack()
+#
+#         self.root.mainloop()
+#
+#     def calculate(self):
+#         op1 = int(self.entry1.get())
+#         op2 = int(self.entry2.get())
+#         command = Command(self)
+#         result = command.execute(op1, op2)
+#         self.result.set(result)
+#
+#
+# if __name__ == "__main__":
+#     import warnings
+#
+#     warnings.filterwarnings("ignore", category=UserWarning,
+#                             message="Secure coding is not enabled for restorable state!")
+#     Calculator()
 
 
-class Command:
-    def __init__(self, calculator):
-        self.calculator = calculator
+# import re
+#
+# def is_russian_phone_number(phone_number):
+#     pattern = re.compile(r'(\+7|7)([ -]*)?(\(?\d{3}\)?)[ -]*(\d{3})[ -]*(\d{2})[ -]*(\d{2})')
+#     return bool(pattern.match(phone_number))
+#
+# # Test the function
+# print(is_russian_phone_number('+7 (999) 123-45-67'))  # True
+# print(is_russian_phone_number('79991234567'))  # True
+# print(is_russian_phone_number('+7 999 123 45 67'))  # True
+# print(is_russian_phone_number('7999123456'))  # False (missing extension digits)
+# print(is_russian_phone_number('+999 123 45 67'))  # False (wrong country code)
 
-    def execute(self):
-        return self.calculator.calculate()
+import re
+regex = rf'\^((\+)|8)\d{1,9}$'
+numbers = [
+    '+123456789',
+    '+234567890',
+    '8123456789',
+    '+12345678901',
+    '---',
+    '@test.com'
+]
 
-
-
-
-
-class Calculator:
-    def __init__(self):
-        self.root = tk.Tk()
-        self.entry1 = tk.Entry(self.root)
-        self.entry2 = tk.Entry(self.root)
-        self.button = tk.Button(self.root, text="Calculate", command=self.calculate)
-        self.result = tk.StringVar()
-        self.label = tk.Label(self.root, textvariable=self.result)
-
-        self.entry1.pack()
-        self.entry2.pack()
-        self.button.pack()
-        self.label.pack()
-
-        self.root.mainloop()
-
-    def calculate(self):
-        op1 = int(self.entry1.get())
-        op2 = int(self.entry2.get())
-        command = Command(self)
-        result = command.execute(op1, op2)
-        self.result.set(result)
-
-
-if __name__ == "__main__":
-    import warnings
-
-    warnings.filterwarnings("ignore", category=UserWarning,
-                            message="Secure coding is not enabled for restorable state!")
-    Calculator()
+for number in numbers:
+    match = re.match(regex, number)
+    if match:
+        print(f"{number} matches the pattern")
+    else:
+        print(f"{number} does not match the pattern")

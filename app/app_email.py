@@ -3,9 +3,9 @@ import tkinter as tk
 from tkinter import ttk
 
 
-class Model:
-    def __init__(self, email):
-        self.email = email
+class ModelEmail:
+    def __init__(self):
+        self.email = ''
 
     @property
     def email(self):
@@ -31,6 +31,76 @@ class Model:
         """
         with open('emails.txt', 'a') as f:
             f.write(self.email + '\n')
+
+
+class ModelPhoneNumber:
+    def __init__(self):
+        self.__value = None
+        self.name = 'phone number'
+
+    @property
+    def value(self):
+        return self.__value
+
+    @value.setter
+    def value(self, number: str):
+        """
+        Validate the number
+        :param number:
+        :return:
+        """
+        temp = number.strip().replace(' ', '')
+        signs = ['(', ')', '-']
+        for char in signs:
+            temp = temp.replace(char, '')
+
+        if temp.isdigit() and len(temp) == 9:
+            self.__value = number
+        else:
+            raise ValueError(f'Invalid {self.name}: {number}')
+
+    def save(self):
+        """
+        Save the number into a file
+        :return:
+        """
+        with open('numbers.txt', 'a') as f:
+            f.write(self.value + '\n')
+
+
+class ModelLogin:
+    def __init__(self):
+        self.__value = None
+        self.name = 'login'
+
+    @property
+    def value(self):
+        return self.__value
+
+    @value.setter
+    def value(self, number: str):
+        """
+        Validate the number
+        :param number:
+        :return:
+        """
+        temp = number.strip().replace(' ', '').replace('.', '').replace(',', '')
+
+        if len(temp) >= 3:
+            self.__value = number.title()
+        else:
+            raise ValueError(f'Invalid {self.name}: {number}')
+
+    def save(self):
+        """
+        Save the number into a file
+        :return:
+        """
+        with open('numbers.txt', 'a') as f:
+            f.write(self.value + '\n')
+
+
+
 
 
 class View(ttk.Frame):
@@ -119,13 +189,12 @@ class Controller:
         :return:
         """
         try:
-
             # save the model
-            self.model.email = email
+            self.model.value = email
             self.model.save()
 
             # show a success message
-            self.view.show_success(f'The email {email} saved!')
+            self.view.show_success(f'The {self.model.name} {email} saved!')
 
         except ValueError as error:
             # show an error message
@@ -139,7 +208,9 @@ class App(tk.Tk):
         self.title('Tkinter MVC Demo')
 
         # create a model
-        model = Model('hello@pythontutorial.net')
+        # model = ModelEmail()
+        # model = ModelPhoneNumber()
+        model = ModelLogin()
 
         # create a view and place it on the root window
         view = View(self)
