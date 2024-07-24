@@ -242,6 +242,7 @@ class Controller:
     def __init__(self, model, view):
         self.model = model
         self.view = view
+        self.view.create_buttons(self.model.colors_data)
 
     def print_color(self):
         """
@@ -249,24 +250,32 @@ class Controller:
         :return:
         """
         try:
-            self.model.print_color()
+            print(6437829)
+
+            self.view.save_button_clicked()
         except ValueError as error:
             print(error)
 
 
 class View:
-    def __init__(self, parent, label_name, colors_data):
+    def __init__(self, parent: Tk, label_name: str):
         # label_color = Label(text="Color name")
+        self.label_name = label_name if isinstance(label_name, str) else Errors.type_error(label_name, str)
+        self.parent = parent if isinstance(parent, Tk) else Errors.type_error(parent, Tk)
         self.__buttons_list = []
-        label_color = Label(text=label_name)
+        self.controller = None
+
+    def create_buttons(self, colors):
+        label_color = Label(text=self.label_name)
         label_color.pack()
         entry_color = Entry(justify=CENTER)
         entry_color.insert(0, "Color code")
         entry_color.pack()
 
-        for index, color in enumerate(colors_data):
-            self.buttons_list = ButtonColor(parent, label_color, entry_color, colors[color], index, color).save_button()
-        self.controller = None
+        for index, color in enumerate(colors):
+            button = ButtonColor(self.parent, label_color, entry_color, colors[color],index, color).save_button()
+            self.buttons_list.append(button)
+            button.pack(fill=X)
 
     def set_controller(self, controller):
         """
@@ -292,12 +301,10 @@ class View:
     def buttons_list(self):
         return self.__buttons_list
 
-    @buttons_list.setter
-    def buttons_list(self, value: Button):
-        self.__buttons_list.append(value)
+    # @buttons_list.setter
+    # def buttons_list(self, value: Button):
+    #     self.__buttons_list.append(value)
 
-
-# root.mainloop()
 
 class App:
     def __init__(self):
@@ -308,7 +315,7 @@ class App:
         model = Model(colors)
 
         # create a view and place it on the root window
-        view = View(self.root, label_name='Colors', colors_data=colors)
+        view = View(self.root, label_name='Colors')
 
         # create a controller
         controller = Controller(model, view)
