@@ -210,13 +210,10 @@ class Model:
 
 
 class ButtonColor:
-    def __init__(self, parent: Tk, label: Label, entry: Entry, color_code: str, index: int, color_name: str):
-        self.buttons_list: list[Button] = []
-
+    def __init__(self, parent: Tk, label: Label, entry: Entry, color_code: str, color_name: str):
         self.parent = parent if isinstance(parent, Tk) else Errors.type_error(parent, Tk)
         self.label = label if isinstance(label, Label) else Errors.type_error(label, Label)
         self.entry = entry if isinstance(entry, Entry) else Errors.type_error(entry, Entry)
-        self.index = index if isinstance(index, int) else Errors.type_error(index, int)
         self.color_name = color_name if isinstance(color_name, str) else Errors.type_error(color_name, str)
 
         if (isinstance(color_code, str) and color_code.startswith('#') and len(color_code) == 7
@@ -225,13 +222,13 @@ class ButtonColor:
         else:
             raise TypeError(f'{color_code} this is not {color_code}')
 
-        # button = Button(self.parent, text=index, bg=color_name, command=self.print_color).pack(fill=X)
-        # button = Button(self.parent, text=index, bg=color_name)
+        self.button = Button(self.parent, text=self.color_name, fg=self.color_name)
+        self.button.config(command=lambda b=self.button: View().set_color(b))   #todo remove this line to View and do inheritance in this class
 
     def save_button(self) -> Button:
-        return Button(self.parent, text=self.index, bg=self.color_name)
+        return Button(self.parent, text=self.color_name, fg=self.color_name)
 
-    def print_color(self) -> None:
+    def show_color(self) -> None:
         self.label.config(text=self.color_name, fg=self.color_name)
         self.entry.delete(0, END)
         self.entry.insert(0, self.color_code)
@@ -244,37 +241,35 @@ class Controller:
         self.view = view
         self.view.create_buttons(self.model.colors_data)
 
-    def print_color(self):
+    @staticmethod
+    def print_color(button: ButtonColor):
         """
         print_color
         :return:
         """
         try:
-            print(6437829)
-
-            self.view.save_button_clicked()
+            button.show_color()
         except ValueError as error:
             print(error)
 
 
 class View:
     def __init__(self, parent: Tk, label_name: str):
-        # label_color = Label(text="Color name")
         self.label_name = label_name if isinstance(label_name, str) else Errors.type_error(label_name, str)
         self.parent = parent if isinstance(parent, Tk) else Errors.type_error(parent, Tk)
-        self.__buttons_list = []
         self.controller = None
 
-    def create_buttons(self, colors):
+    def create_buttons(self, dict_colors):
         label_color = Label(text=self.label_name)
         label_color.pack()
         entry_color = Entry(justify=CENTER)
         entry_color.insert(0, "Color code")
         entry_color.pack()
 
-        for index, color in enumerate(colors):
-            button = ButtonColor(self.parent, label_color, entry_color, colors[color],index, color).save_button()
-            self.buttons_list.append(button)
+        for color_name, color_code in dict_colors.items():
+            button_color = ButtonColor(self.parent, label_color, entry_color, color_code, color_name)
+            button = button_color.save_button()
+            button.config(command=lambda b=button_color: self.save_button_clicked(b))
             button.pack(fill=X)
 
     def set_controller(self, controller):
@@ -285,32 +280,20 @@ class View:
         """
         self.controller = controller
 
-    def save_button_clicked(self):
+    def set_color(self, button: ButtonColor):
         """
         Handle button click event
         :return:
         """
         if self.controller:
-            for button in self.buttons_list:
-                print(button, 536)
-                button = button.config(command=self.controller.print_color)
-                button.pack(fill=X)
-            # self.controller.print_color()
-
-    @property
-    def buttons_list(self):
-        return self.__buttons_list
-
-    # @buttons_list.setter
-    # def buttons_list(self, value: Button):
-    #     self.__buttons_list.append(value)
+            self.controller.print_color(button)
 
 
 class App:
     def __init__(self):
         super().__init__()
         self.root = Tk()
-        # self.root.title('Colors')
+        self.root.title('Colors')
 
         model = Model(colors)
 
