@@ -209,12 +209,12 @@ class Model:
             raise TypeError(f'{value} this is not dict')
 
 
-class ButtonColor:
-    def __init__(self, parent: Tk, label: Label, entry: Entry, color_code: str, color_name: str):
-        self.parent = parent if isinstance(parent, Tk) else Errors.type_error(parent, Tk)
-        self.label = label if isinstance(label, Label) else Errors.type_error(label, Label)
-        self.entry = entry if isinstance(entry, Entry) else Errors.type_error(entry, Entry)
-        self.color_name = color_name if isinstance(color_name, str) else Errors.type_error(color_name, str)
+class ButtonColor(Button):
+    def __init__(self, parent: Tk, label: Label, entry: Entry, color_code: str, color_name: str, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+        self.__label = label if isinstance(label, Label) else Errors.type_error(label, Label)
+        self.__entry = entry if isinstance(entry, Entry) else Errors.type_error(entry, Entry)
+        self.__color_name = color_name if isinstance(color_name, str) else Errors.type_error(color_name, str)
 
         if (isinstance(color_code, str) and color_code.startswith('#') and len(color_code) == 7
                 and color_code[1:].isalnum()):
@@ -222,24 +222,20 @@ class ButtonColor:
         else:
             raise TypeError(f'{color_code} this is not {color_code}')
 
-        self.button = Button(self.parent, text=self.color_name, fg=self.color_name)
-        self.button.config(command=lambda b=self.button: View().set_color(b))   #todo remove this line to View and do inheritance in this class
-
-    def save_button(self) -> Button:
-        return Button(self.parent, text=self.color_name, fg=self.color_name)
+        self.config(text=self.__color_name, fg=self.__color_name)
 
     def show_color(self) -> None:
-        self.label.config(text=self.color_name, fg=self.color_name)
-        self.entry.delete(0, END)
-        self.entry.insert(0, self.color_code)
-        self.entry.config(bg=self.color_name)
+        self.__label.config(text=self.__color_name, fg=self.__color_name)
+        self.__entry.delete(0, END)
+        self.__entry.insert(0, self.color_code)
+        self.__entry.config(bg=self.__color_name)
 
 
 class Controller:
     def __init__(self, model, view):
-        self.model = model
-        self.view = view
-        self.view.create_buttons(self.model.colors_data)
+        self.__model = model
+        self.__view = view
+        self.__view.create_buttons(self.__model.colors_data)
 
     @staticmethod
     def print_color(button: ButtonColor):
@@ -255,22 +251,21 @@ class Controller:
 
 class View:
     def __init__(self, parent: Tk, label_name: str):
-        self.label_name = label_name if isinstance(label_name, str) else Errors.type_error(label_name, str)
-        self.parent = parent if isinstance(parent, Tk) else Errors.type_error(parent, Tk)
-        self.controller = None
+        self.__label_name = label_name if isinstance(label_name, str) else Errors.type_error(label_name, str)
+        self.__parent = parent if isinstance(parent, Tk) else Errors.type_error(parent, Tk)
+        self.__controller = None
 
     def create_buttons(self, dict_colors):
-        label_color = Label(text=self.label_name)
+        label_color = Label(text=self.__label_name)
         label_color.pack()
         entry_color = Entry(justify=CENTER)
         entry_color.insert(0, "Color code")
         entry_color.pack()
 
         for color_name, color_code in dict_colors.items():
-            button_color = ButtonColor(self.parent, label_color, entry_color, color_code, color_name)
-            button = button_color.save_button()
-            button.config(command=lambda b=button_color: self.save_button_clicked(b))
-            button.pack(fill=X)
+            button_color = ButtonColor(self.__parent, label_color, entry_color, color_code, color_name)
+            button_color.config(command=lambda b=button_color: self.__set_color(b))
+            button_color.pack(fill=X)
 
     def set_controller(self, controller):
         """
@@ -278,27 +273,27 @@ class View:
         :param controller:
         :return:
         """
-        self.controller = controller
+        self.__controller = controller
 
-    def set_color(self, button: ButtonColor):
+    def __set_color(self, button: ButtonColor):
         """
         Handle button click event
         :return:
         """
-        if self.controller:
-            self.controller.print_color(button)
+        if self.__controller:
+            self.__controller.print_color(button)
 
 
 class App:
     def __init__(self):
         super().__init__()
-        self.root = Tk()
-        self.root.title('Colors')
+        self.__root = Tk()
+        self.__root.title('Colors')
 
         model = Model(colors)
 
         # create a view and place it on the root window
-        view = View(self.root, label_name='Colors')
+        view = View(self.__root, label_name='Colors')
 
         # create a controller
         controller = Controller(model, view)
@@ -307,7 +302,7 @@ class App:
         view.set_controller(controller)
 
     def mainloop(self):
-        self.root.mainloop()
+        self.__root.mainloop()
 
 
 if __name__ == '__main__':
