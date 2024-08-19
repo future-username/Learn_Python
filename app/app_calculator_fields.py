@@ -648,63 +648,95 @@ class MathExample:
 
 
 class Model:
-    def __init__(self, amount_field: int, sign_label: dict):
-        self.__amount_field = amount_field if isinstance(amount_field, int) else Errors.type_error(amount_field, int)
-        self.__sign_label = sign_label if isinstance(sign_label, str) else Errors.type_error(sign_label, str)
-        self.__operator = operator if isinstance(operator, Callable) else Errors.type_error(operator, Callable)
+    def __init__(self):
+        with open("app_calculator_filds.json", "r") as read_file:
+            data = json.load(read_file)
+        self.__amount_field = data['COUNT_FIELD']
+        self.__sign_label = data['SIGN_LABELS']
+        self.__title = data['TITLE']
 
+    @property
+    def amount_field(self):
+        return self.__amount_field
+
+    @amount_field.setter
+    def amount_field(self, value):
+        if isinstance(value, dict):
+            self.__amount_field = value
+        else:
+            raise TypeError(f'{value} this is not dict')
+
+    @property
+    def sign_label(self):
+        return self.__sign_label
+
+    @sign_label.setter
+    def sign_label(self, value):
+        if isinstance(value, dict):
+            self.__sign_label = value
+        else:
+            raise TypeError(f'{value} this is not dict')
+
+    @property
+    def title(self):
+        return self.__title
+
+    @title.setter
+    def title(self, value):
+        if isinstance(value, dict):
+            self.__title = value
+        else:
+            raise TypeError(f'{value} this is not dict')
 
 
 class View:
-    def draw_line(self, row: int):
+    __list_entries = []
+
+    def draw_line(self, parent, row: int, model, calculate_class):
         row = row if isinstance(row, int) else Errors.type_error(row, int)
 
-        for index in range(self.__amount_field):
-            entry = Entry(self.__parent, width=10, bg="white")
+        for index in range(model.amount_field):
+            entry = Entry(parent, width=10, bg="white")
             entry.grid(column=index * 2, row=row)
             self.__list_entries.append(entry)
 
-            not_last_entry = index + 1 != self.__amount_field
+            not_last_entry = index + 1 != model.amount_field
             if not_last_entry:
-                Label(self.__parent, text=self.__sign_label, fg="black").grid(column=index * 2 + 1, row=row)
+                Label(parent, text=model.sign_label, fg="black").grid(column=index * 2 + 1, row=row)
 
-        self.__result_entry.grid(column=self.__amount_field * 2, row=row)
+        self.__result_entry.grid(column=model.amount_field * 2, row=row)
 
-        _ = Button(self.__parent, text="=", fg="black", command=self.__calculate)
-        _.grid(column=self.__amount_field * 2 - 1, row=row)
+        _ = Button(parent, text="=", fg="black", command=self.__calculate)
+        _.grid(column=model.amount_field * 2 - 1, row=row)
 
 
 class Controller:
-    def __init__(self, model: Model, view: View):
+    def __init__(self, parent, row, model: Model, view: View):
         self.__model = model
         self.__view = view
+        self.__row = row
+        self.__parent = parent
 
     def draw_view(self):
         try:
-            self.__view.draw()
+            self.__view.draw_line(self.__parent, self.__row, self.__model, MathExample)
         except Exception as e:
             raise e
 
 
 class App:
-    def __init__(self, title: str, amount_field: int, sign_labels: dict):
-        self.__title = title if isinstance(title, str) else Errors.type_error(title, str)
-        self.__amount_field = amount_field if isinstance(amount_field, int) else Errors.type_error(amount_field, int)
-        self.__sign_labels = sign_labels if isinstance(sign_labels, dict) else Errors.type_error(sign_labels, dict)
-
+    def __init__(self):
+        model = Model()
         self.__root = Tk()
-        self.__root.title(title)
+        self.__root.title(model.title)
 
-        for row, sign_label in enumerate(sign_labels):
-            sign_label_func = getattr(operator, self.__sign_labels[sign_label])
-            MathExample(self.__root, self.__amount_field, sign_label, sign_label_func).draw_line(row)
+        for row, sign_label in enumerate(model.sign_label):
+            sign_label_func = getattr(operator, model.sign_label[sign_label])
+            # MathExample(self.__root, model.amount_field, sign_label, sign_label_func).draw_line(row)
 
     def draw(self):
         self.__root.mainloop()
 
 
 if __name__ == '__main__':
-    with open("app_calculator_filds.json", "r") as read_file:
-        data = json.load(read_file)
-
-    App(data['TITLE'], data['COUNT_FIELD'], data['SIGN_LABELS']).draw()
+    App().draw()
