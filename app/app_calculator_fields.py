@@ -598,6 +598,10 @@ class MathExample:
         self.__list_entries = []
         self.__result_entry = Entry(self.__parent, width=10, bg="white")
 
+    @property
+    def result_entry(self) -> Entry:
+        return self.__result_entry
+
     def __normalize_numbers(self) -> None:
         self.__result_entry.delete(0, END)
         for field in self.__list_entries:
@@ -614,7 +618,6 @@ class MathExample:
     def __check(self) -> bool:
         """
         There is list only numbers
-
         :return: bool
         """
         true_numbers = 0
@@ -629,22 +632,22 @@ class MathExample:
 
         return true_numbers == len(self.__list_entries)
 
-    def draw_line(self, row: int):
-        row = row if isinstance(row, int) else Errors.type_error(row, int)
-
-        for index in range(self.__amount_field):
-            entry = Entry(self.__parent, width=10, bg="white")
-            entry.grid(column=index * 2, row=row)
-            self.__list_entries.append(entry)
-
-            not_last_entry = index + 1 != self.__amount_field
-            if not_last_entry:
-                Label(self.__parent, text=self.__sign_label, fg="black").grid(column=index * 2 + 1, row=row)
-
-        self.__result_entry.grid(column=self.__amount_field * 2, row=row)
-
-        _ = Button(self.__parent, text="=", fg="black", command=self.__calculate)
-        _.grid(column=self.__amount_field * 2 - 1, row=row)
+    # def draw_line(self, row: int):
+    #     row = row if isinstance(row, int) else Errors.type_error(row, int)
+    #
+    #     for index in range(self.__amount_field):
+    #         entry = Entry(self.__parent, width=10, bg="white")
+    #         entry.grid(column=index * 2, row=row)
+    #         self.__list_entries.append(entry)
+    #
+    #         not_last_entry = index + 1 != self.__amount_field
+    #         if not_last_entry:
+    #             Label(self.__parent, text=self.__sign_label, fg="black").grid(column=index * 2 + 1, row=row)
+    #
+    #     self.__result_entry.grid(column=self.__amount_field * 2, row=row)
+    #
+    #     _ = Button(self.__parent, text="=", fg="black", command=self.__calculate)
+    #     _.grid(column=self.__amount_field * 2 - 1, row=row)
 
 
 class Model:
