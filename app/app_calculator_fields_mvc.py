@@ -2,6 +2,7 @@ from tkinter import *
 from typing import Callable, Any
 from functools import reduce
 import operator
+import json
 
 
 class Errors:
@@ -139,7 +140,7 @@ class Model:
 
 
 class View:
-    def __init__(self, parent: Tk):
+    def __init__(self, parent: Tk, count_fields: int, sign_labels: dict):
         """
         MathExample
         :param parent:
@@ -147,7 +148,8 @@ class View:
         self.controller = None
         self.__model: Model | None = None
         self.__parent = parent if isinstance(parent, Tk) else Errors.type_error(parent, Tk)
-        sign_label_func = getattr(operator, self.__model.sign_label[self.__model.sign_label[0]])
+
+        # self.__sign_label_func = getattr(operator, self.__model.sign_label[self.__model.sign_label[0]])
 
         self.__list_entries = []
         self.__result_entry = Entry(self.__parent, width=10, bg="white")
@@ -174,7 +176,8 @@ class View:
     def __calculate(self) -> None:
         self.__normalize_numbers()
         numbers = (float(field.get()) for field in self.__list_entries)
-        result = str(reduce(self.__operator, numbers)) if self.__list_entries and self.__check() else 'ERROR'
+        sign_label_func = getattr(operator, self.__model.sign_label[self.__model.sign_label[0]])
+        result = str(reduce(sign_label_func, numbers)) if self.__list_entries and self.__check() else 'ERROR'
         self.__result_entry.insert(0, result)
 
     def __check(self) -> bool:
@@ -208,7 +211,7 @@ class View:
                 Label(self.__parent, text=self.__model.sign_label[0], fg="black").grid(column=index * 2 + 1, row=row)
 
         self.__result_entry.grid(column=self.__model.amount_field * 2, row=row)
-
+        print(423)
         _ = Button(self.__parent, text="=", fg="black", command=self.__calculate)
         _.grid(column=self.__model.amount_field * 2 - 1, row=row)
 
@@ -229,11 +232,13 @@ class Controller:
 class App(Tk):
     def __init__(self):
         super().__init__()
+        with open("app_calculator_filds.json", "r") as read_file:
+            data = json.load(read_file)
 
-        self.title('Tkinter MVC Demo')
+        self.title(data['TITLE'])
         model = Model()
 
-        view = View(self)
+        view = View(self, data['COUNT_FIELD'], data['SIGN_LABELS'])
         # view.grid(row=0, column=0, padx=10, pady=10)
 
         controller = Controller(model, view, row=0)

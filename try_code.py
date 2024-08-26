@@ -324,21 +324,3 @@
 # print(is_russian_phone_number('+7 999 123 45 67'))  # True
 # print(is_russian_phone_number('7999123456'))  # False (missing extension digits)
 # print(is_russian_phone_number('+999 123 45 67'))  # False (wrong country code)
-
-import re
-regex = rf'\^((\+)|8)\d{1,9}$'
-numbers = [
-    '+123456789',
-    '+234567890',
-    '8123456789',
-    '+12345678901',
-    '---',
-    '@test.com'
-]
-
-for number in numbers:
-    match = re.match(regex, number)
-    if match:
-        print(f"{number} matches the pattern")
-    else:
-        print(f"{number} does not match the pattern")
