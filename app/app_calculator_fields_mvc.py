@@ -113,17 +113,18 @@ class MathExample:
 
 class Model:
     def __init__(self):
-        self.__amount_field = 3
+        self.__values = []
+        self.__answer = 0
         self.__sign_label = {"+": "add"}
 
     @property
-    def amount_field(self):
-        return self.__amount_field
+    def values(self):
+        return self.__values
 
-    @amount_field.setter
-    def amount_field(self, value):
-        if isinstance(value, dict):
-            self.__amount_field = value
+    @values.setter
+    def values(self, value):
+        if isinstance(value, list):
+            self.__values = value
         else:
             raise TypeError(f'{value} this is not dict')
 
@@ -138,14 +139,27 @@ class Model:
         else:
             raise TypeError(f'{value} this is not dict')
 
+    @property
+    def answer(self):
+        return self.__answer
+
+    @answer.setter
+    def answer(self, value):
+        if isinstance(value, int):
+            self.__answer = value
+        else:
+            raise TypeError(f'{value} this is not dict')
+
 
 class View:
-    def __init__(self, parent: Tk, count_fields: int, sign_labels: dict):
+    def __init__(self, parent: Tk):
         """
         MathExample
         :param parent:
         """
-        self.controller = None
+        # self.__count_fields = count_fields
+        # self.__sign_labels = sign_labels
+        # self.controller = None
         self.__model: Model | None = None
         self.__parent = parent if isinstance(parent, Tk) else Errors.type_error(parent, Tk)
 
@@ -153,18 +167,21 @@ class View:
 
         self.__list_entries = []
         self.__result_entry = Entry(self.__parent, width=10, bg="white")
+        self.amount_field = 2
 
     @property
     def result_entry(self) -> Entry:
         return self.__result_entry
 
-    def set_controller(self, controller):
+    @staticmethod
+    def set_controller(controller):
         """
         Set the controller
         :param controller:
         :return:
         """
-        self.controller = controller
+        # self.controller = controller
+        controller.draw_view()
 
     def __normalize_numbers(self) -> None:
         self.__result_entry.delete(0, END)
@@ -176,9 +193,13 @@ class View:
     def __calculate(self) -> None:
         self.__normalize_numbers()
         numbers = (float(field.get()) for field in self.__list_entries)
-        sign_label_func = getattr(operator, self.__model.sign_label[self.__model.sign_label[0]])
+        sign_label_func = getattr(operator, list(self.__model.sign_label.values())[0])
         result = str(reduce(sign_label_func, numbers)) if self.__list_entries and self.__check() else 'ERROR'
+
         self.__result_entry.insert(0, result)
+
+        self.__model.values = list(float(field.get()) for field in self.__list_entries)
+        self.__model.answer = result
 
     def __check(self) -> bool:
         """
@@ -201,19 +222,19 @@ class View:
         self.__model = model
         row = row if isinstance(row, int) else Errors.type_error(row, int)
 
-        for index in range(self.__model.amount_field):
+        for index in range(self.amount_field):
             entry = Entry(self.__parent, width=10, bg="white")
             entry.grid(column=index * 2, row=row)
             self.__list_entries.append(entry)
 
-            not_last_entry = index + 1 != self.__model.amount_field
+            not_last_entry = index + 1 != self.amount_field
             if not_last_entry:
-                Label(self.__parent, text=self.__model.sign_label[0], fg="black").grid(column=index * 2 + 1, row=row)
+                Label(self.__parent, text=list(self.__model.sign_label.keys())[0],
+                      fg="black").grid(column=index * 2 + 1, row=row)
 
-        self.__result_entry.grid(column=self.__model.amount_field * 2, row=row)
-        print(423)
+        self.__result_entry.grid(column=self.amount_field * 2, row=row)
         _ = Button(self.__parent, text="=", fg="black", command=self.__calculate)
-        _.grid(column=self.__model.amount_field * 2 - 1, row=row)
+        _.grid(column=self.amount_field * 2 - 1, row=row)
 
 
 class Controller:
@@ -238,8 +259,8 @@ class App(Tk):
         self.title(data['TITLE'])
         model = Model()
 
-        view = View(self, data['COUNT_FIELD'], data['SIGN_LABELS'])
-        # view.grid(row=0, column=0, padx=10, pady=10)
+        view = View(self)
+
 
         controller = Controller(model, view, row=0)
 
