@@ -151,6 +151,45 @@ class Model:
             raise TypeError(f'{value} this is not dict')
 
 
+class EnumNumbers:
+    def __init__(self):
+        self.__list_values = []
+        self.__sign = ''
+
+    def __normalize_numbers(self) -> None:
+        for field in self.__list_values:
+            line_normalize = StringNumber(field.get()).normalize_number()
+            field.delete(0, END)
+            field.insert(0, line_normalize)
+
+    def calculate(self) -> str:
+        self.__normalize_numbers()
+        numbers = (float(field.get()) for field in self.__list_values)
+        sign_label_func = getattr(operator, list(self.__sign.values())[0])
+        result = str(reduce(sign_label_func, numbers)) if self.__list_values and self.__check() else 'ERROR'
+
+        # self.__result_entry.insert(0, result)
+        return result
+
+    def __check(self) -> bool:
+        """
+        There is list only numbers
+        :return: bool
+        """
+        # todo this method.
+        true_numbers = 0
+        for field in self.__list_values:
+            field.config(bg='white')
+
+            check_zero_division = field.get() != '0' or self.__sign[0] not in ("/", "//", "%")
+            if StringNumber(field.get()).is_number() and check_zero_division:
+                true_numbers += 1
+            else:
+                field.config(bg='pink')
+
+        return true_numbers == len(self.__list_values)
+
+
 class View:
     def __init__(self, parent: Tk):
         """
@@ -165,7 +204,7 @@ class View:
 
         # self.__sign_label_func = getattr(operator, self.__model.sign_label[self.__model.sign_label[0]])
 
-        self.__list_entries = []
+        self.__list_values = []
         self.__result_entry = Entry(self.__parent, width=10, bg="white")
         self.amount_field = 2
 
@@ -183,40 +222,46 @@ class View:
         # self.controller = controller
         controller.draw_view()
 
-    def __normalize_numbers(self) -> None:
-        self.__result_entry.delete(0, END)
-        for field in self.__list_entries:
-            line_normalize = StringNumber(field.get()).normalize_number()
-            field.delete(0, END)
-            field.insert(0, line_normalize)
+    # def __normalize_numbers(self) -> None:
+    #     self.__result_entry.delete(0, END)
+    #     for field in self.__list_entries:
+    #         line_normalize = StringNumber(field.get()).normalize_number()
+    #         field.delete(0, END)
+    #         field.insert(0, line_normalize)
+    #
+    # def __calculate(self) -> None:
+    #     self.__normalize_numbers()
+    #     numbers = (float(field.get()) for field in self.__list_entries)
+    #     sign_label_func = getattr(operator, list(self.__model.sign_label.values())[0])
+    #     result = str(reduce(sign_label_func, numbers)) if self.__list_entries and self.__check() else 'ERROR'
+    #
+    #     self.__result_entry.insert(0, result)
+    #
+    #     self.__model.values = list(float(field.get()) for field in self.__list_entries)
+    #     self.__model.answer = result
+    #
+    # def __check(self) -> bool:
+    #     """
+    #     There is list only numbers
+    #     :return: bool
+    #     """
+    #     true_numbers = 0
+    #     for field in self.__list_entries:
+    #         field.config(bg='white')
+    #
+    #         check_zero_division = field.get() != '0' or self.__model.sign_label[0] not in ("/", "//", "%")
+    #         if StringNumber(field.get()).is_number() and check_zero_division:
+    #             true_numbers += 1
+    #         else:
+    #             field.config(bg='pink')
+    #
+    #     return true_numbers == len(self.__list_entries)
 
     def __calculate(self) -> None:
-        self.__normalize_numbers()
-        numbers = (float(field.get()) for field in self.__list_entries)
-        sign_label_func = getattr(operator, list(self.__model.sign_label.values())[0])
-        result = str(reduce(sign_label_func, numbers)) if self.__list_entries and self.__check() else 'ERROR'
-
-        self.__result_entry.insert(0, result)
-
+        self.__result_entry.delete(0, END)
+        self.__result_entry.insert(0, Enum.calculate(self.__list_values, self.__model.sign_label))
         self.__model.values = list(float(field.get()) for field in self.__list_entries)
         self.__model.answer = result
-
-    def __check(self) -> bool:
-        """
-        There is list only numbers
-        :return: bool
-        """
-        true_numbers = 0
-        for field in self.__list_entries:
-            field.config(bg='white')
-
-            check_zero_division = field.get() != '0' or self.__model.sign_label[0] not in ("/", "//", "%")
-            if StringNumber(field.get()).is_number() and check_zero_division:
-                true_numbers += 1
-            else:
-                field.config(bg='pink')
-
-        return true_numbers == len(self.__list_entries)
 
     def draw_line(self, model, row: int):
         self.__model = model
@@ -225,7 +270,8 @@ class View:
         for index in range(self.amount_field):
             entry = Entry(self.__parent, width=10, bg="white")
             entry.grid(column=index * 2, row=row)
-            self.__list_entries.append(entry)
+            # self.__list_entries.append(entry)
+            self.__list_values.append(entry.get())
 
             not_last_entry = index + 1 != self.amount_field
             if not_last_entry:
@@ -260,7 +306,6 @@ class App(Tk):
         model = Model()
 
         view = View(self)
-
 
         controller = Controller(model, view, row=0)
 

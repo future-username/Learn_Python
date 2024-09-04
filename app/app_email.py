@@ -100,6 +100,41 @@ class ModelLogin:
             f.write(self.value + '\n')
 
 
+class Model:
+    def __init__(self, name, complete):
+        self.__complete = complete
+        self.__value = None
+        self.name = name
+
+    @property
+    def value(self):
+        return self.__value
+
+    @value.setter
+    def value(self, number: str):
+        """
+        Validate the number
+        :param number:
+        :return:
+        """
+        # temp = number.strip().replace(' ', '').replace('.', '').replace(',', '')
+
+        temp = self.__complete(number.strip())
+
+        if temp:
+            self.__value = number.title()
+        else:
+            raise ValueError(f'Invalid {self.name}: {number}')
+
+    def save(self):
+        """
+        Save the number into a file
+        :return:
+        """
+        with open('numbers.txt', 'a') as f:
+            f.write(self.value + '\n')
+
+
 class View(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
@@ -207,7 +242,10 @@ class App(tk.Tk):
         # create a model
         # model = ModelEmail()
         # model = ModelPhoneNumber()
-        model = ModelLogin()
+        # model = Model(lambda x: x.replace(' ', '').replace('.', '').replace(',', ''))
+        # model = Model(lambda x: len(x.replace(' ', '').replace('.', '').replace(',', '')) >= 3)
+        command = lambda x: re.fullmatch(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', x)
+        model = Model('email', command)
 
         # create a view and place it on the root window
         view = View(self)
