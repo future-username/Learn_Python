@@ -114,6 +114,7 @@ class MathExample:
 class Model:
     def __init__(self):
         self.__values = []
+        self.__values_numbers = []
         self.__answer = 0
         self.__sign_label = {"+": "add"}
 
@@ -145,28 +146,24 @@ class Model:
 
     @answer.setter
     def answer(self, value):
-        if isinstance(value, int):
+        if isinstance(value, str):
             self.__answer = value
         else:
             raise TypeError(f'{value} this is not dict')
 
-
-class EnumNumbers:
-    def __init__(self):
-        self.__list_values = []
-        self.__sign = ''
-
     def __normalize_numbers(self) -> None:
-        for field in self.__list_values:
-            line_normalize = StringNumber(field.get()).normalize_number()
+        for field, number in zip(self.__values, self.__values_numbers):
+            line_normalize = StringNumber(str(number)).normalize_number()
             field.delete(0, END)
             field.insert(0, line_normalize)
 
     def calculate(self) -> str:
         self.__normalize_numbers()
-        numbers = (float(field.get()) for field in self.__list_values)
-        sign_label_func = getattr(operator, list(self.__sign.values())[0])
-        result = str(reduce(sign_label_func, numbers)) if self.__list_values and self.__check() else 'ERROR'
+        print(self.__values)
+        self.__values_numbers = [float(value.get()) for value in self.__values] if self.__values and self.__check() else None
+        sign_label_func = getattr(operator, list(self.__sign_label.values())[0])
+        result = str(reduce(sign_label_func, self.__values_numbers))\
+            if self.__values and self.__check() else 'ERROR'
 
         # self.__result_entry.insert(0, result)
         return result
@@ -176,18 +173,56 @@ class EnumNumbers:
         There is list only numbers
         :return: bool
         """
-        # todo this method.
         true_numbers = 0
-        for field in self.__list_values:
+        for field, number in zip(self.__values, self.__values_numbers):
             field.config(bg='white')
-
-            check_zero_division = field.get() != '0' or self.__sign[0] not in ("/", "//", "%")
-            if StringNumber(field.get()).is_number() and check_zero_division:
+            print(number)
+            check_zero_division = number != 0.0 or self.__sign_label[0] not in ("/", "//", "%")
+            if StringNumber(str(number)).is_number() and check_zero_division:
                 true_numbers += 1
             else:
                 field.config(bg='pink')
 
-        return true_numbers == len(self.__list_values)
+        return true_numbers == len(self.__values_numbers)
+
+
+# class EnumNumbers:
+#     def __init__(self):
+#         self.__list_values = []
+#         self.__sign = ''
+#
+#     def __normalize_numbers(self) -> None:
+#         for field in self.__list_values:
+#             line_normalize = StringNumber(field.get()).normalize_number()
+#             field.delete(0, END)
+#             field.insert(0, line_normalize)
+#
+#     def calculate(self) -> str:
+#         self.__normalize_numbers()
+#         numbers = (float(field.get()) for field in self.__list_values)
+#         sign_label_func = getattr(operator, list(self.__sign.values())[0])
+#         result = str(reduce(sign_label_func, numbers)) if self.__list_values and self.__check() else 'ERROR'
+#
+#         # self.__result_entry.insert(0, result)
+#         return result
+#
+#     def __check(self) -> bool:
+#         """
+#         There is list only numbers
+#         :return: bool
+#         """
+#         # todo this method.
+#         true_numbers = 0
+#         for field in self.__list_values:
+#             field.config(bg='white')
+#
+#             check_zero_division = field.get() != '0' or self.__sign[0] not in ("/", "//", "%")
+#             if StringNumber(field.get()).is_number() and check_zero_division:
+#                 true_numbers += 1
+#             else:
+#                 field.config(bg='pink')
+#
+#         return true_numbers == len(self.__list_values)
 
 
 class View:
@@ -259,8 +294,10 @@ class View:
 
     def __calculate(self) -> None:
         self.__result_entry.delete(0, END)
-        self.__result_entry.insert(0, Enum.calculate(self.__list_values, self.__model.sign_label))
-        self.__model.values = list(float(field.get()) for field in self.__list_entries)
+        self.__model.values = self.__list_values
+        result = self.__model.calculate()
+        self.__result_entry.insert(0, result)
+        # self.__model.values = list(field for field in self.__list_entries)
         self.__model.answer = result
 
     def draw_line(self, model, row: int):
@@ -271,7 +308,7 @@ class View:
             entry = Entry(self.__parent, width=10, bg="white")
             entry.grid(column=index * 2, row=row)
             # self.__list_entries.append(entry)
-            self.__list_values.append(entry.get())
+            self.__list_values.append(entry)
 
             not_last_entry = index + 1 != self.amount_field
             if not_last_entry:
