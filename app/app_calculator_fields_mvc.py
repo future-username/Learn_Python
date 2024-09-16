@@ -152,20 +152,20 @@ class Model:
             raise TypeError(f'{value} this is not dict')
 
     def __normalize_numbers(self) -> None:
-        for field, number in zip(self.__values, self.__values_numbers):
-            line_normalize = StringNumber(str(number)).normalize_number()
+        for field in self.__values:
+            line_normalize = StringNumber(str(field.get())).normalize_number()
             field.delete(0, END)
             field.insert(0, line_normalize)
 
     def calculate(self) -> str:
         self.__normalize_numbers()
-        print(self.__values)
-        self.__values_numbers = [float(value.get()) for value in self.__values] if self.__values and self.__check() else None
+        if self.__values and self.__check():
+            self.__values_numbers = [float(value.get()) for value in self.__values]
+
         sign_label_func = getattr(operator, list(self.__sign_label.values())[0])
-        result = str(reduce(sign_label_func, self.__values_numbers))\
+        result = str(reduce(sign_label_func, self.__values_numbers)) \
             if self.__values and self.__check() else 'ERROR'
 
-        # self.__result_entry.insert(0, result)
         return result
 
     def __check(self) -> bool:
@@ -174,16 +174,16 @@ class Model:
         :return: bool
         """
         true_numbers = 0
-        for field, number in zip(self.__values, self.__values_numbers):
+        # for field, number in zip(self.__values, self.__values_numbers):
+        for field in self.__values:
             field.config(bg='white')
-            print(number)
-            check_zero_division = number != 0.0 or self.__sign_label[0] not in ("/", "//", "%")
-            if StringNumber(str(number)).is_number() and check_zero_division:
+            check_zero_division = field.get() != 0 or self.__sign_label.keys() not in ("/", "//", "%")
+            if StringNumber(str(field.get())).is_number() and check_zero_division:
                 true_numbers += 1
             else:
                 field.config(bg='pink')
 
-        return true_numbers == len(self.__values_numbers)
+        return true_numbers == len(self.__values)
 
 
 # class EnumNumbers:
@@ -243,19 +243,20 @@ class View:
         self.__result_entry = Entry(self.__parent, width=10, bg="white")
         self.amount_field = 2
 
+        self.controller = None
+
     @property
     def result_entry(self) -> Entry:
         return self.__result_entry
 
-    @staticmethod
-    def set_controller(controller):
+    def set_controller(self, controller):
         """
         Set the controller
         :param controller:
         :return:
         """
-        # self.controller = controller
-        controller.draw_view()
+        self.controller = controller
+        # controller.draw_view()
 
     # def __normalize_numbers(self) -> None:
     #     self.__result_entry.delete(0, END)
@@ -293,6 +294,8 @@ class View:
     #     return true_numbers == len(self.__list_entries)
 
     def __calculate(self) -> None:
+        if not self.controller:
+            return
         self.__result_entry.delete(0, END)
         self.__model.values = self.__list_values
         result = self.__model.calculate()
@@ -316,7 +319,8 @@ class View:
                       fg="black").grid(column=index * 2 + 1, row=row)
 
         self.__result_entry.grid(column=self.amount_field * 2, row=row)
-        _ = Button(self.__parent, text="=", fg="black", command=self.__calculate)
+        # _ = Button(self.__parent, text="=", fg="black", command=lambda : self.__calculate)
+        _ = Button(self.__parent, text="=", fg="black", command=lambda: self.controller if)
         _.grid(column=self.amount_field * 2 - 1, row=row)
 
 
@@ -342,11 +346,11 @@ class App(Tk):
         self.title(data['TITLE'])
         model = Model()
 
-        view = View(self)
+        view = View('+', amount_field=2, row=0)
 
         controller = Controller(model, view, row=0)
 
-        view.set_controller(controller)
+        # view.set_controller(controller)
 
 
 if __name__ == '__main__':
