@@ -1,5 +1,5 @@
 from tkinter import *
-from typing import Callable, Any
+from typing import Any
 from functools import reduce
 import operator
 import json
@@ -41,82 +41,11 @@ class StringNumber:
         return self.__value.replace(' ', '').replace(',', '.')
 
 
-class MathExample:
-    def __init__(self, parent: Tk, amount_field: int, sign_label: str, operator: Callable):
-        """
-        MathExample
-
-        :param parent:
-        :param amount_field:
-        :param sign_label:
-        :param operator:
-        """
-        self.__parent = parent if isinstance(parent, Tk) else Errors.type_error(parent, Tk)
-        self.__amount_field = amount_field if isinstance(amount_field, int) else Errors.type_error(amount_field, int)
-        self.__sign_label = sign_label if isinstance(sign_label, str) else Errors.type_error(sign_label, str)
-        self.__operator = operator if isinstance(operator, Callable) else Errors.type_error(operator, Callable)
-
-        self.__list_entries = []
-        self.__result_entry = Entry(self.__parent, width=10, bg="white")
-
-    @property
-    def result_entry(self) -> Entry:
-        return self.__result_entry
-
-    def __normalize_numbers(self) -> None:
-        self.__result_entry.delete(0, END)
-        for field in self.__list_entries:
-            line_normalize = StringNumber(field.get()).normalize_number()
-            field.delete(0, END)
-            field.insert(0, line_normalize)
-
-    def __calculate(self) -> None:
-        self.__normalize_numbers()
-        numbers = (float(field.get()) for field in self.__list_entries)
-        result = str(reduce(self.__operator, numbers)) if self.__list_entries and self.__check() else 'ERROR'
-        self.__result_entry.insert(0, result)
-
-    def __check(self) -> bool:
-        """
-        There is list only numbers
-        :return: bool
-        """
-        true_numbers = 0
-        for field in self.__list_entries:
-            field.config(bg='white')
-
-            check_zero_division = field.get() != '0' or self.__sign_label not in ("/", "//", "%")
-            if StringNumber(field.get()).is_number() and check_zero_division:
-                true_numbers += 1
-            else:
-                field.config(bg='pink')
-
-        return true_numbers == len(self.__list_entries)
-
-    # def draw_line(self, row: int):
-    #     row = row if isinstance(row, int) else Errors.type_error(row, int)
-    #
-    #     for index in range(self.__amount_field):
-    #         entry = Entry(self.__parent, width=10, bg="white")
-    #         entry.grid(column=index * 2, row=row)
-    #         self.__list_entries.append(entry)
-    #
-    #         not_last_entry = index + 1 != self.__amount_field
-    #         if not_last_entry:
-    #             Label(self.__parent, text=self.__sign_label, fg="black").grid(column=index * 2 + 1, row=row)
-    #
-    #     self.__result_entry.grid(column=self.__amount_field * 2, row=row)
-    #
-    #     _ = Button(self.__parent, text="=", fg="black", command=self.__calculate)
-    #     _.grid(column=self.__amount_field * 2 - 1, row=row)
-
-
 class Model:
     def __init__(self):
         self.__values = []
         self.__values_numbers = []
         self.__answer = 0
-        self.__sign_label = {"+": "add"}
 
     @property
     def values(self):
@@ -126,17 +55,6 @@ class Model:
     def values(self, value):
         if isinstance(value, list):
             self.__values = value
-        else:
-            raise TypeError(f'{value} this is not dict')
-
-    @property
-    def sign_label(self):
-        return self.__sign_label
-
-    @sign_label.setter
-    def sign_label(self, value):
-        if isinstance(value, dict):
-            self.__sign_label = value
         else:
             raise TypeError(f'{value} this is not dict')
 
@@ -157,27 +75,23 @@ class Model:
             field.delete(0, END)
             field.insert(0, line_normalize)
 
-    def calculate(self) -> str:
+    def calculate(self, sign) -> str:
         self.__normalize_numbers()
-        if self.__values and self.__check():
+        if self.__values and self.__check(sign):
             self.__values_numbers = [float(value.get()) for value in self.__values]
 
-        sign_label_func = getattr(operator, list(self.__sign_label.values())[0])
-        result = str(reduce(sign_label_func, self.__values_numbers)) \
-            if self.__values and self.__check() else 'ERROR'
+        sign_label_func = getattr(operator, list(sign.values())[0])
+        return str(reduce(sign_label_func, self.__values_numbers)) if self.__values and self.__check(sign) else 'ERROR'
 
-        return result
-
-    def __check(self) -> bool:
+    def __check(self, sign) -> bool:
         """
         There is list only numbers
         :return: bool
         """
         true_numbers = 0
-        # for field, number in zip(self.__values, self.__values_numbers):
         for field in self.__values:
             field.config(bg='white')
-            check_zero_division = field.get() != 0 or self.__sign_label.keys() not in ("/", "//", "%")
+            check_zero_division = field.get() != 0 or sign.keys() not in ("/", "//", "%")
             if StringNumber(str(field.get())).is_number() and check_zero_division:
                 true_numbers += 1
             else:
@@ -186,64 +100,16 @@ class Model:
         return true_numbers == len(self.__values)
 
 
-# class EnumNumbers:
-#     def __init__(self):
-#         self.__list_values = []
-#         self.__sign = ''
-#
-#     def __normalize_numbers(self) -> None:
-#         for field in self.__list_values:
-#             line_normalize = StringNumber(field.get()).normalize_number()
-#             field.delete(0, END)
-#             field.insert(0, line_normalize)
-#
-#     def calculate(self) -> str:
-#         self.__normalize_numbers()
-#         numbers = (float(field.get()) for field in self.__list_values)
-#         sign_label_func = getattr(operator, list(self.__sign.values())[0])
-#         result = str(reduce(sign_label_func, numbers)) if self.__list_values and self.__check() else 'ERROR'
-#
-#         # self.__result_entry.insert(0, result)
-#         return result
-#
-#     def __check(self) -> bool:
-#         """
-#         There is list only numbers
-#         :return: bool
-#         """
-#         # todo this method.
-#         true_numbers = 0
-#         for field in self.__list_values:
-#             field.config(bg='white')
-#
-#             check_zero_division = field.get() != '0' or self.__sign[0] not in ("/", "//", "%")
-#             if StringNumber(field.get()).is_number() and check_zero_division:
-#                 true_numbers += 1
-#             else:
-#                 field.config(bg='pink')
-#
-#         return true_numbers == len(self.__list_values)
-
-
 class View:
-    def __init__(self, parent: Tk):
-        """
-        MathExample
-        :param parent:
-        """
-        # self.__count_fields = count_fields
-        # self.__sign_labels = sign_labels
-        # self.controller = None
-        self.__model: Model | None = None
+    def __init__(self, parent, sign, amount_field, row):
         self.__parent = parent if isinstance(parent, Tk) else Errors.type_error(parent, Tk)
-
-        # self.__sign_label_func = getattr(operator, self.__model.sign_label[self.__model.sign_label[0]])
-
         self.__list_values = []
         self.__result_entry = Entry(self.__parent, width=10, bg="white")
-        self.amount_field = 2
-
+        self.amount_field = amount_field
+        self.__row = row
+        self.__sign = sign
         self.controller = None
+        self.__draw_line()
 
     @property
     def result_entry(self) -> Entry:
@@ -258,81 +124,42 @@ class View:
         self.controller = controller
         # controller.draw_view()
 
-    # def __normalize_numbers(self) -> None:
-    #     self.__result_entry.delete(0, END)
-    #     for field in self.__list_entries:
-    #         line_normalize = StringNumber(field.get()).normalize_number()
-    #         field.delete(0, END)
-    #         field.insert(0, line_normalize)
-    #
-    # def __calculate(self) -> None:
-    #     self.__normalize_numbers()
-    #     numbers = (float(field.get()) for field in self.__list_entries)
-    #     sign_label_func = getattr(operator, list(self.__model.sign_label.values())[0])
-    #     result = str(reduce(sign_label_func, numbers)) if self.__list_entries and self.__check() else 'ERROR'
-    #
-    #     self.__result_entry.insert(0, result)
-    #
-    #     self.__model.values = list(float(field.get()) for field in self.__list_entries)
-    #     self.__model.answer = result
-    #
-    # def __check(self) -> bool:
-    #     """
-    #     There is list only numbers
-    #     :return: bool
-    #     """
-    #     true_numbers = 0
-    #     for field in self.__list_entries:
-    #         field.config(bg='white')
-    #
-    #         check_zero_division = field.get() != '0' or self.__model.sign_label[0] not in ("/", "//", "%")
-    #         if StringNumber(field.get()).is_number() and check_zero_division:
-    #             true_numbers += 1
-    #         else:
-    #             field.config(bg='pink')
-    #
-    #     return true_numbers == len(self.__list_entries)
-
-    def __calculate(self) -> None:
-        if not self.controller:
-            return
+    def calculate(self, model) -> None:
         self.__result_entry.delete(0, END)
-        self.__model.values = self.__list_values
-        result = self.__model.calculate()
+        model.values = self.__list_values
+        result = model.calculate(self.__sign)
         self.__result_entry.insert(0, result)
-        # self.__model.values = list(field for field in self.__list_entries)
-        self.__model.answer = result
+        model.answer = result
 
-    def draw_line(self, model, row: int):
-        self.__model = model
-        row = row if isinstance(row, int) else Errors.type_error(row, int)
-
+    def __draw_line(self):
         for index in range(self.amount_field):
             entry = Entry(self.__parent, width=10, bg="white")
-            entry.grid(column=index * 2, row=row)
-            # self.__list_entries.append(entry)
+            entry.grid(column=index * 2, row=self.__row)
             self.__list_values.append(entry)
 
             not_last_entry = index + 1 != self.amount_field
             if not_last_entry:
-                Label(self.__parent, text=list(self.__model.sign_label.keys())[0],
-                      fg="black").grid(column=index * 2 + 1, row=row)
+                Label(self.__parent, text=list(self.__sign.keys())[0],
+                      fg="black").grid(column=index * 2 + 1, row=self.__row)
 
-        self.__result_entry.grid(column=self.amount_field * 2, row=row)
-        # _ = Button(self.__parent, text="=", fg="black", command=lambda : self.__calculate)
-        _ = Button(self.__parent, text="=", fg="black", command=lambda: self.controller if)
-        _.grid(column=self.amount_field * 2 - 1, row=row)
+        self.__result_entry.grid(column=self.amount_field * 2, row=self.__row)
+
+        _ = Button(self.__parent, text="=", fg="black", command=self.__check_controller)
+        _.grid(column=self.amount_field * 2 - 1, row=self.__row)
+
+    def __check_controller(self):
+        if self.controller:
+            self.controller.do_calculate()
 
 
 class Controller:
-    def __init__(self, model: Model, view: View, row: int):
+    def __init__(self, model: Model, view: View):
         self.__model = model
         self.__view = view
-        self.__row = row
 
-    def draw_view(self):
+    def do_calculate(self):
         try:
-            self.__view.draw_line(model=self.__model, row=self.__row)
+            self.__view.calculate(self.__model)
         except Exception as e:
             raise e
 
@@ -346,11 +173,15 @@ class App(Tk):
         self.title(data['TITLE'])
         model = Model()
 
-        view = View('+', amount_field=2, row=0)
+        view = View(parent=self, sign={"+": "add"}, amount_field=3,
+                    row=0)  # todo like method command in Button (sign=operator(1, sign))
+        view1 = View(parent=self, sign={"-": "sub"}, amount_field=3, row=1)
 
-        controller = Controller(model, view, row=0)
+        controller = Controller(model, view)
+        controller1 = Controller(model, view1)
 
-        # view.set_controller(controller)
+        view.set_controller(controller)
+        view1.set_controller(controller1)
 
 
 if __name__ == '__main__':
