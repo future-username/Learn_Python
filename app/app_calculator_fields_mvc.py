@@ -75,15 +75,14 @@ class Model:
             field.delete(0, END)
             field.insert(0, line_normalize)
 
-    def calculate(self, sign) -> str:
+    def calculate(self, sign, operation, type_field) -> str:
         self.__normalize_numbers()
-        if self.__values and self.__check(sign):
+        if self.__values and self.__check(sign, type_field):
             self.__values_numbers = [float(value.get()) for value in self.__values]
 
-        sign_label_func = getattr(operator, list(sign.values())[0])
-        return str(reduce(sign_label_func, self.__values_numbers)) if self.__values and self.__check(sign) else 'ERROR'
+        return str(reduce(operation, self.__values_numbers)) if self.__values and self.__check(sign, type_field) else 'ERROR'
 
-    def __check(self, sign) -> bool:
+    def __check(self, sign, type_field) -> bool:
         """
         There is list only numbers
         :return: bool
@@ -91,7 +90,7 @@ class Model:
         true_numbers = 0
         for field in self.__values:
             field.config(bg='white')
-            check_zero_division = field.get() != 0 or sign.keys() not in ("/", "//", "%")
+            check_zero_division = field.get() != 0 or sign not in ("/", "//", "%")
             if StringNumber(str(field.get())).is_number() and check_zero_division:
                 true_numbers += 1
             else:
@@ -101,14 +100,16 @@ class Model:
 
 
 class View:
-    def __init__(self, parent, sign, amount_field, row):
+    def __init__(self, parent: Tk, sign: str, amount_field: int, row: int, operation, type_field: type):
         self.__parent = parent if isinstance(parent, Tk) else Errors.type_error(parent, Tk)
         self.__list_values = []
         self.__result_entry = Entry(self.__parent, width=10, bg="white")
-        self.amount_field = amount_field
+        self.__amount_field = amount_field
         self.__row = row
         self.__sign = sign
         self.controller = None
+        self.__operation = operation
+        self.__type_field = type_field
         self.__draw_line()
 
     @property
@@ -127,25 +128,25 @@ class View:
     def calculate(self, model) -> None:
         self.__result_entry.delete(0, END)
         model.values = self.__list_values
-        result = model.calculate(self.__sign)
+        result = model.calculate(self.__sign, self.__operation, self.__type_field)
         self.__result_entry.insert(0, result)
         model.answer = result
 
     def __draw_line(self):
-        for index in range(self.amount_field):
+        for index in range(self.__amount_field):
             entry = Entry(self.__parent, width=10, bg="white")
             entry.grid(column=index * 2, row=self.__row)
             self.__list_values.append(entry)
 
-            not_last_entry = index + 1 != self.amount_field
+            not_last_entry = index + 1 != self.__amount_field
             if not_last_entry:
-                Label(self.__parent, text=list(self.__sign.keys())[0],
+                Label(self.__parent, text=self.__sign,
                       fg="black").grid(column=index * 2 + 1, row=self.__row)
 
-        self.__result_entry.grid(column=self.amount_field * 2, row=self.__row)
+        self.__result_entry.grid(column=self.__amount_field * 2, row=self.__row)
 
         _ = Button(self.__parent, text="=", fg="black", command=self.__check_controller)
-        _.grid(column=self.amount_field * 2 - 1, row=self.__row)
+        _.grid(column=self.__amount_field * 2 - 1, row=self.__row)
 
     def __check_controller(self):
         if self.controller:
@@ -173,15 +174,19 @@ class App(Tk):
         self.title(data['TITLE'])
         model = Model()
 
-        view = View(parent=self, sign={"+": "add"}, amount_field=3,
-                    row=0)  # todo like method command in Button (sign=operator(1, sign))
-        view1 = View(parent=self, sign={"-": "sub"}, amount_field=3, row=1)
+        view = View(parent=self, sign="+", amount_field=3, row=0, operation=operator.add, type_field=int)
+        # view1 = View(parent=self, sign="-", amount_field=3, row=1, operation=operator.sub)
+        view1 = View(parent=self, sign="and", amount_field=3, row=1, operation=add_str, type_field=str)
 
         controller = Controller(model, view)
         controller1 = Controller(model, view1)
 
         view.set_controller(controller)
         view1.set_controller(controller1)
+
+
+def add_str(a: str, b: str) -> str:
+    return str(a) + str(b)
 
 
 if __name__ == '__main__':

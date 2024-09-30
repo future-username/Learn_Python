@@ -324,3 +324,32 @@
 # print(is_russian_phone_number('+7 999 123 45 67'))  # True
 # print(is_russian_phone_number('7999123456'))  # False (missing extension digits)
 # print(is_russian_phone_number('+999 123 45 67'))  # False (wrong country code)
+
+
+# import operator
+# from typing import Callable
+#
+#
+# def some_func(a: int, b: int, name: str, func: Callable):
+#     print(name, func(a, b))
+#
+#
+# print(operator.add(1, 1))
+# print(operator.sub(1, 1))
+#
+# some_func(5, 8, 'summ', operator.add)
+# some_func(5, 8, 'sub', operator.sub)
+
+
+from tkinter import *
+
+root = Tk()
+fr = LabelFrame(text='lol')
+fr.pack()
+# button_ok = Button(fr, text="OK, \n\n\n\n\n", underline=1)
+button_ok = Label(fr, text="OK, \n\n\n\n\n", underline=1)
+button_ok.pack()
+# button_sure = Button(button_ok, text="Are you sure", underline=1)
+# button_sure.pack()
+
+root.mainloop()
