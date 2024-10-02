@@ -233,28 +233,57 @@ class Controller:
             self.view.show_error(error)
 
 
+class Factory:
+    @staticmethod
+    def create_model_email():
+        command = lambda x: re.fullmatch(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', x)
+        return Model('email', command)
+
+    @staticmethod
+    def create_model_phone():
+        return ModelPhoneNumber()
+
+    @staticmethod
+    def create_model_login():
+        return ModelLogin()
+
+    @staticmethod
+    def create_view(parent):
+        return View(parent)
+
+    @staticmethod
+    def create_controller(model, view):
+        return Controller(model, view)
+
+
+# class App(tk.Tk):
+#     def __init__(self):
+#         super().__init__()
+#
+#         self.title('Tkinter MVC Demo')
+#
+#         # model = ModelEmail()
+#         # model = ModelPhoneNumber()
+#         # model = Model(lambda x: x.replace(' ', '').replace('.', '').replace(',', ''))
+#         # model = Model(lambda x: len(x.replace(' ', '').replace('.', '').replace(',', '')) >= 3)
+#         command = lambda x: re.fullmatch(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', x)
+#         model = Model('email', command)
+#
+#         view = View(self)
+#         view.grid(row=0, column=0, padx=10, pady=10)
+#
+#         controller = Controller(model, view)
+#         view.set_controller(controller)
+
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
-
         self.title('Tkinter MVC Demo')
 
-        # create a model
-        # model = ModelEmail()
-        # model = ModelPhoneNumber()
-        # model = Model(lambda x: x.replace(' ', '').replace('.', '').replace(',', ''))
-        # model = Model(lambda x: len(x.replace(' ', '').replace('.', '').replace(',', '')) >= 3)
-        command = lambda x: re.fullmatch(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', x)
-        model = Model('email', command)
-
-        # create a view and place it on the root window
-        view = View(self)
+        model = Factory.create_model_login()
+        view = Factory.create_view(self)
         view.grid(row=0, column=0, padx=10, pady=10)
-
-        # create a controller
-        controller = Controller(model, view)
-
-        # set the controller to view
+        controller = Factory.create_controller(model, view)
         view.set_controller(controller)
 
 
