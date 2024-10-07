@@ -339,17 +339,3 @@
 #
 # some_func(5, 8, 'summ', operator.add)
 # some_func(5, 8, 'sub', operator.sub)
-
-
-from tkinter import *
-
-root = Tk()
-fr = LabelFrame(text='lol')
-fr.pack()
-# button_ok = Button(fr, text="OK, \n\n\n\n\n", underline=1)
-button_ok = Label(fr, text="OK, \n\n\n\n\n", underline=1)
-button_ok.pack()
-# button_sure = Button(button_ok, text="Are you sure", underline=1)
-# button_sure.pack()
-
-root.mainloop()
