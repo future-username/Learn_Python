@@ -276,8 +276,8 @@ class Data(metaclass=SingletonForm):
             if data["language"] == language:
                 self.languages_data[index]['data'] = new_data
 
-    def get_languages_data(self) -> dict:
-        return self.__languages_data
+    # def get_languages_data(self) -> dict:
+    #     return self.__languages_data
 
     @property
     def languages_data(self):
@@ -434,7 +434,7 @@ class App:
 
     @staticmethod
     def __save_file():
-        data = Data().get_languages_data()
+        data = Data().languages_data
         file_name = filedialog.asksaveasfilename(
             defaultextension='.json', filetypes=[("json files", '*.json')],
             title="Choose filename")
