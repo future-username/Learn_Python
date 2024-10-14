@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from tkinter import Frame, LabelFrame
+import json
 
 
 class Errors(ABC):
@@ -11,7 +12,7 @@ class Errors(ABC):
     @abstractmethod
     def type_error(value, type_value: type):
         """
-        Check type of value and print error description
+        Check type of value and raise error description
         :param value: Object for check type
         :param type_value: type for check object
         """
@@ -32,7 +33,11 @@ class SingletonForm(ABC, type):
         raise NotImplementedError()
 
 
-class Data(ABC, metaclass=SingletonForm):
+class Data(ABC):
+    """
+    class Data(metaclass=SingletonForm):
+    """
+    @abstractmethod
     def __init__(self, *args, **kwargs):
         """
         Language Data
@@ -57,8 +62,8 @@ class Data(ABC, metaclass=SingletonForm):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     @property
+    @abstractmethod
     def languages_data(self):
         """
         Get all languages data
@@ -66,8 +71,8 @@ class Data(ABC, metaclass=SingletonForm):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     @languages_data.setter
+    @abstractmethod
     def languages_data(self, data: dict):
         """
         Set new languages_data
@@ -84,6 +89,7 @@ class Data(ABC, metaclass=SingletonForm):
 
 
 class LabelEntry(ABC, Frame):
+    # noinspection PyUnusedLocal
     @abstractmethod
     def __init__(self, parent, label_text: str, entry_text: str, *args, **kwargs):
         """
@@ -105,135 +111,115 @@ class LabelEntry(ABC, Frame):
 
 
 class Form(ABC, LabelFrame):
+    # noinspection PyUnusedLocal
+    @abstractmethod
     def __init__(self, language: str, *args, **kwargs):
+        """
+        Form data
+        :param language: current language form
+        """
         super().__init__(*args, **kwargs)
+        raise NotImplementedError()
 
-        self.__language = language
-        self['text'] = self.__language
-        self.pack()
-
-        self.__label_entries: LabelEntry | list = []
-
+    @abstractmethod
     def change(self):
-        for label in Data().get_language(self.__language):
-            label = LabelEntry(self, label['label'], label['entry'])
-            label.pack(fill=X)
-            self.__label_entries.append(label)
+        """
+        Change language name
+        """
+        raise NotImplementedError()
 
-        Data().language_name = self.__language
-
+    @abstractmethod
     def get_list_data(self) -> list:
-        result = []
-        for label in self.__label_entries:
-            result.append(label.get_data())
-        return result
+        """
+        Get data from label entries
+        """
+        raise NotImplementedError()
 
 
-class ButtonTranslate:
-    __previous_form: Form | None = None
-
+class ButtonTranslate(ABC):
+    # noinspection PyUnusedLocal
+    @abstractmethod
     def __init__(self, parent: LabelFrame, language_name: str):
-        self.parent = parent if isinstance(parent, LabelFrame) else Errors.type_error(parent, LabelFrame)
-        self.language_name = language_name
+        """
+        Buttons make translate form
+        :param parent: LabelFrame in which they are stored buttons
+        :param language_name: language to translate form
+        """
+        raise NotImplementedError()
 
-        self.button = Button(parent, text=language_name, fg="black", command=self.change_form)
-
-        self.__data_list: list[dict] = []
-        self.__data_dict = {}
-
+    @abstractmethod
     def change_form(self):
-        if self.__class__.__previous_form:
-            Data().set_language(Data().language_name, self.__class__.__previous_form.get_list_data())
-            self.__class__.__previous_form.destroy()
+        """
+        Change form to another language
+        """
+        raise NotImplementedError()
 
-        form = Form(self.language_name)
-        form.change()
-        self.__class__.__previous_form = form
-
+    @abstractmethod
     def pack(self, *args, **kwargs):
         """
         Pack button
-        :param args:
-        :param kwargs:
-        :return:
         """
-        self.button.pack(*args, **kwargs)
+        raise NotImplementedError()
 
+    @abstractmethod
     def grid(self, *args, **kwargs):
         """
         Grid button
-        :param args:
-        :param kwargs:
-        :return:
         """
-        self.button.grid(*args, **kwargs)
+        raise NotImplementedError()
 
     @classmethod
+    @abstractmethod
     def destroy(cls):
-        if cls.__previous_form:
-            cls.__previous_form.destroy()
-            cls.__previous_form = None
+        """
+        Destroy form
+        """
+        raise NotImplementedError()
 
 
-class App:
+class App(ABC):
+    # noinspection PyUnusedLocal
+    @abstractmethod
     def __init__(
             self,
             title: str,
             frame_buttons_title: str = '',
             frame_form_title: str = ''
     ):
-        self.frame_buttons_title = frame_buttons_title if isinstance(frame_buttons_title, str) \
-            else Errors.type_error(frame_buttons_title, str)
-        self.frame_form_title = frame_form_title if isinstance(frame_form_title, str) \
-            else Errors.type_error(frame_form_title, str)
+        """
+        App
+        :param title: form title
+        :param frame_buttons_title: the title from frame in buttons which translate
+        :param frame_form_title: the title language form
+        """
+        raise NotImplementedError()
 
-        self.__frame_buttons = None
+    @abstractmethod
+    def create_interface(self, languages: json):
+        """
+        Create interface form
+        :param languages: json from form data with label and entries
+        """
+        raise NotImplementedError()
 
-        self.root = Tk()
-        None if isinstance(title, str) else Errors.type_error(title, str)
-        self.root.title(title)
-        frame_menu = Frame()
-        frame_menu.pack()
-        Button(frame_menu, text='Open', fg="black", command=self.__open_file).pack(side=LEFT)
-        Button(frame_menu, text='Save', fg="black", command=self.__save_file).pack(side=RIGHT)
-
-    def __create_interface(self, languages: json):
-        self.__frame_buttons = LabelFrame(text=self.frame_buttons_title)
-        self.__frame_buttons.pack()
-
-        Data().languages_data = languages
-        for index, language in enumerate(languages):
-            _ = ButtonTranslate(self.__frame_buttons, language["language"])
-            _.pack(side=LEFT)
-            _.change_form() if index == 0 else None
-
-    def __open_file(self):
+    @abstractmethod
+    def open_file(self):
         """
         Open file and add data to Labels
-        :return: None
         """
-        ButtonTranslate.destroy()
-        self.__frame_buttons.destroy() if self.__frame_buttons else None
-        Data().clean_data()
-
-        file_name = filedialog.askopenfilename(filetypes=[("json files", '*.json')])
-        if file_name:
-            with open(file_name, 'r', encoding='UTF-8') as file:
-                file_data = json.load(file)
-            try:
-                self.__create_interface(file_data) if file_data else None
-            except TypeError:
-                messagebox.showerror(message='Open file with form')
+        raise NotImplementedError()
 
     @staticmethod
+    @abstractmethod
     def __save_file():
-        data = Data().get_languages_data()
-        file_name = filedialog.asksaveasfilename(
-            defaultextension='.json', filetypes=[("json files", '*.json')],
-            title="Choose filename")
-        if file_name:
-            with open(file_name, 'w', encoding='UTF-8') as file:
-                file.write(json.dumps(list(data), indent=4))
+        """
+        Save file or update current
+        """
+        raise NotImplementedError()
 
+    @abstractmethod
     def draw(self):
-        self.root.mainloop()
+        """
+        Draw form
+        """
+        raise NotImplementedError()
