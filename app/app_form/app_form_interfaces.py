@@ -3,7 +3,7 @@ from tkinter import Frame, LabelFrame
 import json
 
 
-class Errors(ABC):
+class TypeException(ABC, Exception):
     """
     Typical processing print Errors
     """
@@ -89,11 +89,14 @@ class Data(ABC):
 
 
 class LabelEntry(ABC, Frame):
+    """
+    LabelEntry is one widget line form
+    """
     # noinspection PyUnusedLocal
     @abstractmethod
     def __init__(self, parent, label_text: str, entry_text: str, *args, **kwargs):
         """
-        LabelEntry
+        LabelEntry building
         :param parent:
         :param label_text: text to Label
         :param entry_text: text to Entry
