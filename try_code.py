@@ -339,3 +339,40 @@
 #
 # some_func(5, 8, 'summ', operator.add)
 # some_func(5, 8, 'sub', operator.sub)
+
+
+from abc import ABC, abstractmethod
+
+
+class AssureClient(ABC):
+
+    # noinspection PyUnusedLocal
+    @abstractmethod
+    def __init__(
+            self,
+            host: str,
+            port: int = 30001,
+            access_token = None,
+            ssl_cert = None):
+        raise NotImplementedError()
+
+
+class LabelEntry(ABC):
+    @abstractmethod
+    def __init__(self, parent, label_text: str, entry_text: str, *args, **kwargs):
+        """
+        LabelEntry
+        :param parent:
+        :param label_text: text to Label
+        :param entry_text: text to Entry
+        """
+        super().__init__(*args, **kwargs)
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_data(self) -> dict[str: str]:
+        """
+        Get data from LabelEntry
+        :return: label and entry in dict
+        """
+        raise NotImplementedError()
