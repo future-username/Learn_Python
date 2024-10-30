@@ -5,7 +5,6 @@ class _Vehicle(ABC):
     """
     class Vehicle ...
     """
-    # pass
     @abstractmethod
     def __init__(self, make: str, model: str, price: float, year: int = 2000):
         """
@@ -17,16 +16,18 @@ class _Vehicle(ABC):
         """
         raise NotImplementedError()
 
+    @property
     @abstractmethod
-    def get_model(self) -> str:
+    def model(self) -> str:
         """
         current model
         :return: model of Vehicle
         """
         raise NotImplementedError()
 
+    @model.setter
     @abstractmethod
-    def set_model(self, value: str):
+    def model(self, value: str):
         """
         set value min length 2 chars max 100 chars
         :param value: min length 2 chars
@@ -37,33 +38,69 @@ class _Vehicle(ABC):
     @property
     @abstractmethod
     def year(self) -> int:
+        """
+        :return: made year
+        """
         raise NotImplementedError()
 
     @year.setter
     @abstractmethod
     def year(self, year: int):
+        """
+        set made year
+        :param year: made date
+        """
         raise NotImplementedError()
 
+    @property
     @abstractmethod
-    def get_price(self) -> float:
+    def price(self) -> float:
+        """
+        :return: price Vehicle in dollars
+        """
         raise NotImplementedError()
 
+    @price.setter
     @abstractmethod
-    def set_price(self, price: float):
+    def price(self, price: float):
+        """
+        set Vehicle price
+        :param price: in dollars
+        """
         raise NotImplementedError()
 
 
 class Vehicle(_Vehicle):
-    # pass
     def __init__(self, make, model, price, year = 2000):
-        print()
+        self.__model = model
+        self.__price = price
+        self.__year = year
+
+    @property
+    def model(self):
+        return self.__model
+
+    @model.setter
+    def model(self, value):
+        self.__model = value
+
+    @property
+    def price(self):
+        return self.__price
+
+    @price.setter
+    def price(self, value):
+        self.__price = value
+
+    @property
+    def year(self):
+        return self.__year
+
+    @year.setter
+    def year(self, value):
+        self.__year = value
 
 
-    def get_model(self):
-        pass
-
-    def set_model(self, value):
-        pass
 
 
 # vehicle = _Vehicle("1","2",3,5)
