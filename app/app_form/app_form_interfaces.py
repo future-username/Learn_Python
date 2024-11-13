@@ -33,7 +33,7 @@ class SingletonForm(ABC, type):
         raise NotImplementedError()
 
 
-class Data(ABC):
+class Data(ABC, metaclass=SingletonForm):
     """
     class Data(metaclass=SingletonForm):
     """

@@ -39,44 +39,50 @@ class LabelEntry(_LabelEntry, Frame):
 
 class Form(_Form, LabelFrame):
     def __init__(self, language: str, *args, **kwargs):
+        super().__init__(language, *args, **kwargs)
         self.__language = language if isinstance(language, str) else TypeException.type_error(language, str)
-        super().__init__(self.__language, *args, **kwargs)
+        self['text'] = self.__language
         self.pack()
-
 
     def change(self):
         pass
 
     def get_list_data(self) -> list:
+        return self.children.get()
         pass
 
-class Data(_Data):
+class Data(_Data, metaclass=SingletonForm):
     def __init__(self, *args, **kwargs):
-       pass
+        super.__init__(*args, **kwargs)
+        self.__language_data = {}
 
-    @property
-    def get_language(self, language: str) -> list:
-        pass
+    def get_language(self, language_name) -> list:
+        for item in self.__language_data:
+            if item['language'] == language_name:
+                return item['data']
 
-    @get_language.setter
-    def set_language(self, language: str, new_data: list[dict]):
-        pass
+    def set_language(self, language_name: str, new_data: list[dict]):
+        for index, data in enumerate(self.__language_data):
+            if data['language'] == language_name:
+                self.__language_data[index]['data'] = new_data
 
     @property
     def languages_data(self):
-        pass
+        return self.__language_data
 
     @languages_data.setter
     def languages_data(self, data: dict):
-        pass
+        self.__language_data = data
 
     def clean_data(self):
-        pass
+        self.__language_data.clear()
 
 
 class ButtonTranslate(_ButtonTranslate):
     def __init__(self, parent: LabelFrame, language_name: str):
-        pass
+        self.__parent = parent
+        self.__language_name = language_name
+
 
     def change_form(self):
         pass

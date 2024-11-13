@@ -341,38 +341,124 @@
 # some_func(5, 8, 'sub', operator.sub)
 
 
-from abc import ABC, abstractmethod
+# from abc import ABC, abstractmethod
+#
+#
+# class AssureClient(ABC):
+#
+#     # noinspection PyUnusedLocal
+#     @abstractmethod
+#     def __init__(
+#             self,
+#             host: str,
+#             port: int = 30001,
+#             access_token = None,
+#             ssl_cert = None):
+#         raise NotImplementedError()
+#
+#
+# class LabelEntry(ABC):
+#     @abstractmethod
+#     def __init__(self, parent, label_text: str, entry_text: str, *args, **kwargs):
+#         """
+#         LabelEntry
+#         :param parent:
+#         :param label_text: text to Label
+#         :param entry_text: text to Entry
+#         """
+#         super().__init__(*args, **kwargs)
+#         raise NotImplementedError()
+#
+#     @abstractmethod
+#     def get_data(self) -> dict[str: str]:
+#         """
+#         Get data from LabelEntry
+#         :return: label and entry in dict
+#         """
+#         raise NotImplementedError()
 
 
-class AssureClient(ABC):
+# class StringCheck:
+#     def __init__(self, text: str):
+#         self.__text = text
+#
+#     def is_lower(self):
+#         return self.__text.islower()
+#
+#     def is_upper(self):
+#         return self.__text.isupper()
+#
+#     def is_title(self):
+#         return self.__text.istitle()
+#
+#
+# class StringSwitchCase:
+#     def __init__(self, text: str):
+#         self.__text = text
+#
+#     def lower(self):
+#         return self.__text.lower()
+#
+#     def upper(self):
+#         return self.__text.upper()
+#
+#     def title(self):
+#         return self.__text.title()
+#
+#
+# class StringJustify:
+#     def __init__(self, text: str):
+#         self.__text = text
+#
+#     def center(self, width: int, fill_char: str = " ") -> str:
+#         return self.__text.center(width, fill_char)
+#     def left_just(self, width: int, fill_char: str = " ") -> str:
+#         return self.__text.ljust(width, fill_char)
+#     def right_just(self, width: int, fill_char: str = " ") -> str:
+#         return self.__text.rjust(width, fill_char)
+#
+# class MyString:
+#     def __init__(self, text: str):
+#         self.__text = text
+#         self.check = StringCheck(self.__text)
+#         self.switch_case = StringSwitchCase(self.__text)
+#         self.justify = StringJustify(self.__text)
+#
+#
+# line = MyString('AnY tExT.')
+# print(line.switch_case.lower())
+# print(line.check.is_lower())
 
-    # noinspection PyUnusedLocal
-    @abstractmethod
-    def __init__(
-            self,
-            host: str,
-            port: int = 30001,
-            access_token = None,
-            ssl_cert = None):
-        raise NotImplementedError()
 
+from threading import Thread
+from tkinter import Tk, Button, Label
+from random import randint
+import time
 
-class LabelEntry(ABC):
-    @abstractmethod
-    def __init__(self, parent, label_text: str, entry_text: str, *args, **kwargs):
-        """
-        LabelEntry
-        :param parent:
-        :param label_text: text to Label
-        :param entry_text: text to Entry
-        """
-        super().__init__(*args, **kwargs)
-        raise NotImplementedError()
+amount = 1
+place = 1
 
-    @abstractmethod
-    def get_data(self) -> dict[str: str]:
-        """
-        Get data from LabelEntry
-        :return: label and entry in dict
-        """
-        raise NotImplementedError()
+def go_thread(widget, text):
+    global place
+    text += '#'
+    widget.config(text=text)
+    if len(text) < 30:
+        time.sleep(randint(0, 3))
+        go_thread(widget, text)
+    else:
+        text += f'  {place} place'
+        widget.config(text=text, bg="lightgreen")
+        place += 1
+
+def run_thread():
+    global amount
+    label = Label()
+    label.pack(anchor="w", padx=5, pady=3)
+    Thread(target=go_thread, args=(label, f'Thread {amount}: ')).start()
+    amount += 1
+
+root = Tk()
+root.title('Monogenes')
+root.minsize(250,50)
+Button(text="Run a new thread", command=run_thread).pack()
+root.mainloop()
