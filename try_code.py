@@ -430,35 +430,145 @@
 # print(line.check.is_lower())
 
 
-from threading import Thread
-from tkinter import Tk, Button, Label
-from random import randint
-import time
+# from threading import Thread
+# from tkinter import Tk, Button, Label
+# from random import randint
+# import time
+#
+# amount = 1
+# place = 1
+#
+# def go_thread(widget, text):
+#     global place
+#     text += '#'
+#     widget.config(text=text)
+#     if len(text) < 30:
+#         time.sleep(randint(0, 3))
+#         go_thread(widget, text)
+#     else:
+#         text += f'  {place} place'
+#         widget.config(text=text, bg="lightgreen")
+#         place += 1
+#
+# def run_thread():
+#     global amount
+#     label = Label()
+#     label.pack(anchor="w", padx=5, pady=3)
+#     Thread(target=go_thread, args=(label, f'Thread {amount}: ')).start()
+#     amount += 1
+#
+# root = Tk()
+# root.title('Monogenes')
+# root.minsize(250,50)
+# Button(text="Run a new thread", command=run_thread).pack()
+# root.mainloop()
 
-amount = 1
-place = 1
 
-def go_thread(widget, text):
-    global place
-    text += '#'
-    widget.config(text=text)
-    if len(text) < 30:
-        time.sleep(randint(0, 3))
-        go_thread(widget, text)
-    else:
-        text += f'  {place} place'
-        widget.config(text=text, bg="lightgreen")
-        place += 1
+#  напишите стек, который поддерживает методы push, pop, top, get_min
+# (получение минимального элемента) за постоянное время:
 
-def run_thread():
-    global amount
-    label = Label()
-    label.pack(anchor="w", padx=5, pady=3)
-    Thread(target=go_thread, args=(label, f'Thread {amount}: ')).start()
-    amount += 1
+# это будет твой класс Stack и надо его реализовать !
+# class Stack:
+#     def __init__(self):
+#         self.stack = []   # основной стек для хранения элементов
+#         self.min_num = None # стек для хранения минимальных значений
+#
+#     def push(self, value):
+#         if not self.min_num:
+#             self.min_num = value
+#         elif value < self.min_num:
+#             self.min_num = value
+#
+#         self.stack.append(value)
+#
+#     def pop(self):
+#         return self.stack.pop(len(self.stack))
+#
+#     def top(self):
+#         return self.stack[-1]
+#
+#     def get_min(self):
+#         return self.min_num
+#
+#
+# # Пример использования
+# stack = Stack()
+# stack.push(3)
+# stack.push(5)
+# print(stack.get_min())  # Вывод: 3
 
-root = Tk()
-root.title('Monogenes')
-root.minsize(250,50)
-Button(text="Run a new thread", command=run_thread).pack()
-root.mainloop()
+
+# import functools
+#
+#
+# def my_decorator(func):
+#     # @functools.wraps(func)
+#     def wrapper(*args, **kwargs):
+#         print("Вызов функции до выполнения.")
+#         result = func(*args, **kwargs)
+#         print("Вызов функции после выполнения.")
+#         return result
+#
+#     return wrapper
+#
+#
+# @my_decorator
+# def say_hello(name):
+#     """Приветствует пользователя по имени."""
+#     return f"Привет, {name}!"
+#
+#
+# print(say_hello.__name__)  # Выводит "say_hello"
+# print(say_hello.__doc__)  # Выводит "Приветствует пользователя по имени."
+# # print(say_hello('xcghjk').)
+
+# from functools import wraps
+#
+# class StringCheck:
+#     def __init__(self, text: str):
+#         self.__text = text
+#
+#     @wraps(str.islower)
+#     def is_lower(self):
+#         return self.__text.islower()
+#
+#     def is_upper(self):
+#         return self.__text.isupper()
+#
+#     def is_title(self):
+#         return self.__text.istitle()
+#
+#
+# print(f'{StringCheck('sd').is_lower.__doc__ =}')
+# print(f'{StringCheck('sd').is_upper.__doc__ =}')   # 'aNy TeXt.'
+
+
+from functools import wraps
+"""
+Парттерн Фасад: реализация кода в результате которой,
+происходи группировка методов основного класса String на подгруппы методов.
+"""
+
+class StringCheck:
+    def __init__(self, text: str):
+        self.__text = text
+
+    @wraps(str.islower)
+    def is_lower(self):
+        return self.__text.islower()
+
+    @wraps(str.isupper)
+    def is_upper(self):
+        """
+        My doc
+        :return:
+        """
+        return self.__text.isupper()
+
+    def is_title(self):
+        return self.__text.istitle()
+
+
+print(f'{StringCheck('sd').is_lower.__doc__ =}')
+print(f'{StringCheck('sd').is_upper.__doc__ =}')
+print(f'{StringCheck('sd').is_title.__doc__ =}')
