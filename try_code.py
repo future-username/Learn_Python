@@ -264,6 +264,7 @@
 #
 # if __name__ == '__main__':
 #     App(title="Form", frame_buttons_title='Translate').draw()
+# from tkinter_file.tkinter_grid import result_plus
 
 
 # import tkinter as tk
@@ -543,32 +544,62 @@
 # print(f'{StringCheck('sd').is_upper.__doc__ =}')   # 'aNy TeXt.'
 
 
-from functools import wraps
-"""
-Парттерн Фасад: реализация кода в результате которой,
-происходи группировка методов основного класса String на подгруппы методов.
-"""
+# from functools import wraps
+# """
+# Парттерн Фасад: реализация кода в результате которой,
+# происходи группировка методов основного класса String на подгруппы методов.
+# """
+#
+# class StringCheck:
+#     def __init__(self, text: str):
+#         self.__text = text
+#
+#     @wraps(str.islower)
+#     def is_lower(self):
+#         return self.__text.islower()
+#
+#     @wraps(str.isupper)
+#     def is_upper(self):
+#         """
+#         My doc
+#         :return:
+#         """
+#         return self.__text.isupper()
+#
+#     def is_title(self):
+#         return self.__text.istitle()
+#
+#
+# print(f'{StringCheck('sd').is_lower.__doc__ =}')
+# print(f'{StringCheck('sd').is_upper.__doc__ =}')
+# print(f'{StringCheck('sd').is_title.__doc__ =}')
 
-class StringCheck:
-    def __init__(self, text: str):
-        self.__text = text
 
-    @wraps(str.islower)
-    def is_lower(self):
-        return self.__text.islower()
+# class StringSwitchCase:
+#     def __init__(self, text: str):
+#         self.__text = text
+#
+#     def lower(self):
+#         return self.__text.lower()
+#
+#     def upper(self):
+#         return self.__text.upper()
+#
+#     def title(self):
+#         return self.__text.title()
+def write_doc(param: str) -> str:
+    doc_info = str().__getattribute__(param.strip().split('.')[-1].removesuffix('()')).__doc__
 
-    @wraps(str.isupper)
-    def is_upper(self):
-        """
-        My doc
-        :return:
-        """
-        return self.__text.isupper()
+    n = '"""'
 
-    def is_title(self):
-        return self.__text.istitle()
+    return f"\t\t{n}\t\t\n{doc_info}\n{n}".replace('\n', '\n\t\t')
 
 
-print(f'{StringCheck('sd').is_lower.__doc__ =}')
-print(f'{StringCheck('sd').is_upper.__doc__ =}')
-print(f'{StringCheck('sd').is_title.__doc__ =}')
+for line in open('another_try_code.py'):
+    # if line.startswith('def'):
+    #     print(line)
+
+    if line.strip().startswith('return'):
+        print(write_doc(line))
+    print(line, end='')
+
