@@ -18,3 +18,4 @@ class StringSwitchCase:
                __width: SupportsIndex,
                __fillchar: LiteralString = " ") -> LiteralString:
         return self.__text.center()
+
