@@ -506,200 +506,428 @@
 # # Отображение
 # Plot.display.show()
 
+# import matplotlib.pyplot as plt
+#
+#
+# class Plot:
+#     def __init__(self):
+#         raise NotImplementedError()
+#
+#     @property
+#     def diagram(self):
+#         """
+#         Графики и диаграммы: диаграммы, графики и др.
+#         """
+#         raise NotImplementedError()
+#
+#     def plot(self, *args, **kwargs):
+#         """
+#         Основной метод для построения графиков.
+#         """
+#         return plt.plot(*args, **kwargs)
+#
+#     def scatter(self, *args, **kwargs):
+#         """
+#         Точечный график.
+#         """
+#         return plt.scatter(*args, **kwargs)
+#
+#     def bar(self, *args, **kwargs):
+#         """
+#         Столбчатая диаграмма.
+#         """
+#         return plt.bar(*args, **kwargs)
+#
+#     def barh(self, *args, **kwargs):
+#         """
+#         Горизонтальная столбчатая диаграмма.
+#         """
+#         return plt.barh(*args, **kwargs)
+#
+#     def hist(self, *args, **kwargs):
+#         """
+#         Гистограмма.
+#         """
+#         return plt.hist(*args, **kwargs)
+#
+#     def boxplot(self, *args, **kwargs):
+#         """
+#         Диаграмма размаха (boxplot).
+#         """
+#         return plt.boxplot(*args, **kwargs)
+#
+#     def pie(self, *args, **kwargs):
+#         """
+#         Круговая диаграмма.
+#         """
+#         return plt.pie(*args, **kwargs)
+#
+#
+# class Axis:
+#     def __init__(self):
+#         raise NotImplementedError()
+#
+#     def xlabel(self, *args, **kwargs):
+#         """
+#         Устанавливает метку по оси X.
+#         """
+#         return plt.xlabel(*args, **kwargs)
+#
+#     def ylabel(self, *args, **kwargs):
+#         """
+#         Устанавливает метку по оси Y.
+#         """
+#         return plt.ylabel(*args, **kwargs)
+#
+#     def xlim(self, *args, **kwargs):
+#         """
+#         Устанавливает границы оси X.
+#         """
+#         return plt.xlim(*args, **kwargs)
+#
+#     def ylim(self, *args, **kwargs):
+#         """
+#         Устанавливает границы оси Y.
+#         """
+#         return plt.ylim(*args, **kwargs)
+#
+#     def xticks(self, *args, **kwargs):
+#         """
+#         Устанавливает значения на оси X.
+#         """
+#         return plt.xticks(*args, **kwargs)
+#
+#     def yticks(self, *args, **kwargs):
+#         """
+#         Устанавливает значения на оси Y.
+#         """
+#         return plt.yticks(*args, **kwargs)
+#
+#     def grid(self, *args, **kwargs):
+#         """
+#         Включает или отключает сетку на графике.
+#         """
+#         return plt.grid(*args, **kwargs)
+#
+#
+# class Labels:
+#     def __init__(self):
+#         raise NotImplementedError()
+#
+#     def title(self, *args, **kwargs):
+#         """
+#         Устанавливает заголовок графика.
+#         """
+#         return plt.title(*args, **kwargs)
+#
+#     def suptitle(self, *args, **kwargs):
+#         """
+#         Устанавливает общий заголовок для всех графиков на фигуре.
+#         """
+#         return plt.suptitle(*args, **kwargs)
+#
+#     def legend(self, *args, **kwargs):
+#         """
+#         Добавляет легенду на график.
+#         """
+#         return plt.legend(*args, **kwargs)
+#
+#     def annotate(self, *args, **kwargs):
+#         """
+#         Добавляет аннотацию на график.
+#         """
+#         return plt.annotate(*args, **kwargs)
+#
+#
+# class Styles:
+#     def __init__(self):
+#         raise NotImplementedError()
+#
+#     def style(self, *args, **kwargs):
+#         """
+#         Устанавливает стиль графика.
+#         """
+#         return plt.style.use(*args, **kwargs)
+#
+#     def colormap(self, *args, **kwargs):
+#         """
+#         Устанавливает цветовую карту.
+#         """
+#         return plt.set_cmap(*args, **kwargs)
+#
+#
+# class Layout:
+#     def __init__(self):
+#         raise NotImplementedError()
+#
+#     def figure(self, *args, **kwargs):
+#         """
+#         Создает новую фигуру.
+#         """
+#         return plt.figure(*args, **kwargs)
+#
+#     def subplot(self, *args, **kwargs):
+#         """
+#         Добавляет подграфик (subplot) на фигуру.
+#         """
+#         return plt.subplot(*args, **kwargs)
+#
+#     def subplots(self, *args, **kwargs):
+#         """
+#         Создает несколько подграфиков на фигуре.
+#         """
+#         return plt.subplots(*args, **kwargs)
+#
+#     def tight_layout(self, *args, **kwargs):
+#         """
+#         Автоматическая компоновка графиков на фигуре.
+#         """
+#         return plt.tight_layout(*args, **kwargs)
+#
+#     def show(self, *args, **kwargs):
+#         """
+#         Показывает все графики.
+#         """
+#         return plt.show(*args, **kwargs)
+#
+#
+# # Пример использования
+# plot = Plot()
+# axis = Axis()
+# labels = Labels()
+# styles = Styles()
+# layout = Layout()
+#
+# plot.plot([0, 1, 2], [2, 3, 5])
+# axis.xlabel("Ось X")
+# axis.ylabel("Ось Y")
+# labels.title("Пример графика")
+# layout.show()
+
+
 import matplotlib.pyplot as plt
 
+class FigureManager:
+    """
+    Управляет созданием и настройкой фигур и осей.
+    """
+    def figure(self):
+        """Создает новую фигуру."""
+        return plt.figure()
 
-class Plot:
-    def __init__(self):
-        raise NotImplementedError()
+    def subplots(self):
+        """Создает фигуру и набор осей."""
+        return plt.subplots()
 
-    @property
-    def diagram(self):
-        """
-        Графики и диаграммы: диаграммы, графики и др.
-        """
-        raise NotImplementedError()
+    def add_subplot(self):
+        """Добавляет оси на текущую фигуру."""
+        return plt.subplot()
 
-    def plot(self, *args, **kwargs):
-        """
-        Основной метод для построения графиков.
-        """
-        return plt.plot(*args, **kwargs)
+    def gca(self):
+        """Возвращает текущие оси."""
+        return plt.gca()
 
-    def scatter(self, *args, **kwargs):
-        """
-        Точечный график.
-        """
-        return plt.scatter(*args, **kwargs)
+    def gcf(self):
+        """Возвращает текущую фигуру."""
+        return plt.gcf()
 
-    def bar(self, *args, **kwargs):
-        """
-        Столбчатая диаграмма.
-        """
-        return plt.bar(*args, **kwargs)
+    def clf(self):
+        """Очищает текущую фигуру."""
+        plt.clf()
 
-    def barh(self, *args, **kwargs):
-        """
-        Горизонтальная столбчатая диаграмма.
-        """
-        return plt.barh(*args, **kwargs)
+    def close(self):
+        """Закрывает фигуру."""
+        plt.close()
 
-    def hist(self, *args, **kwargs):
-        """
-        Гистограмма.
-        """
-        return plt.hist(*args, **kwargs)
+# class PlotDrawer:
+#     """
+#     Предоставляет методы для построения различных типов графиков.
+#     """
+#     def plot(self, *args, **kwargs):
+#         """Строит график линий."""
+#         return plt.plot(*args, **kwargs)
+#
+#     def scatter(self):
+#         """Строит точечный график."""
+#         return plt.scatter()
+#
+#     def bar(self):
+#         """Строит столбчатую диаграмму."""
+#         return plt.bar()
+#
+#     def hist(self):
+#         """Строит гистограмму."""
+#         return plt.hist()
+#
+#     def imshow(self):
+#         """Отображает изображение."""
+#         return plt.imshow()
+#
+#     def pie(self):
+#         """Строит круговую диаграмму."""
+#         return plt.pie()
+#
+#     def errorbar(self):
+#         """Строит график с полосами ошибок."""
+#         return plt.errorbar()
+#
+#     def fill_between(self):
+#         """Заполняет область между двумя линиями."""
+#         return plt.fill_between()
+#
+# class AppearanceManager:
+#     """
+#     Управляет внешним видом графиков (заголовки, метки, легенда и т.д.).
+#     """
+#     def title(self):
+#         """Устанавливает заголовок графика."""
+#         plt.title()
+#
+#     def xlabel(self, *args, **kwargs):
+#         """Устанавливает метку оси X."""
+#         plt.xlabel(*args, **kwargs)
+#         print(plt.xlabel.__doc__)
+#
+#     def ylabel(self):
+#         """Устанавливает метку оси Y."""
+#         plt.ylabel()
+#
+#     def legend(self):
+#         """Отображает легенду."""
+#         plt.legend()
+#
+#     def xlim(self):
+#         """Устанавливает пределы оси X."""
+#         plt.xlim()
+#
+#     def ylim(self):
+#         """Устанавливает пределы оси Y."""
+#         plt.ylim()
+#
+#     def grid(self):
+#         """Включает/выключает сетку."""
+#         plt.grid()
+#
+#     def xticks(self):
+#         """Устанавливает метки оси X."""
+#         plt.xticks()
+#
+#     def yticks(self):
+#         """Устанавливает метки оси Y."""
+#         plt.yticks()
+#
+#     def axis(self):
+#         """Управляет свойствами осей."""
+#         plt.axis()
+#
+# class TextManager:
+#     """
+#     Управляет текстом и аннотациями на графиках.
+#     """
+#     def text(self):
+#         """Добавляет текст на график."""
+#         plt.text()
+#
+#     def annotate(self):
+#         """Добавляет аннотацию на график."""
+#         plt.annotate()
+#
+#     def arrow(self):
+#         """Добавляет стрелку на график."""
+#         plt.arrow()
+#
+# class OutputManager:
+#     """
+#     Управляет сохранением и отображением графиков.
+#     """
+#     def show(self):
+#         """Отображает график."""
+#         plt.show()
+#
+#     def savefig(self):
+#         """Сохраняет график в файл."""
+#         plt.savefig()
+#
+# class StyleManager:
+#     """
+#     Управляет цветами, стилями и цветовыми картами.
+#     """
+#     def cm(self):
+#         """Возвращает объект для работы с цветовыми картами."""
+#         return plt.cm
+#
+#     def colormaps(self):
+#         """Возвращает список доступных цветовых карт."""
+#         return plt.colormaps()
+#
+#     def set_cmap(self):
+#         """Устанавливает текущую цветовую карту."""
+#         plt.set_cmap()
+#
+#     def style(self):
+#         """Управляет стилями графиков."""
+#         return plt.style
+#
+#     def rc(self):
+#         """Управляет параметрами matplotlib."""
+#         return plt.rc
+#
+# class PlotFacade:
+#     """
+#     Фасад, предоставляющий упрощенный интерфейс для работы с matplotlib.pyplot.
+#     """
+#     def __init__(self):
+#         self._figure_manager = FigureManager()
+#         self._plot_drawer = PlotDrawer()
+#         self._appearance_manager = AppearanceManager()
+#         self._text_manager = TextManager()
+#         self._output_manager = OutputManager()
+#         self._style_manager = StyleManager()
+#
+#     @property
+#     def figure(self):
+#         """Управляет созданием и настройкой фигур и осей."""
+#         return self._figure_manager
+#
+#     @property
+#     def plot(self):
+#         """Предоставляет методы для построения различных типов графиков."""
+#         return self._plot_drawer
+#
+#     @property
+#     def appearance(self):
+#         """Управляет внешним видом графиков (заголовки, метки, легенда и т.д.)."""
+#         return self._appearance_manager
+#
+#     @property
+#     def text(self):
+#         """Управляет текстом и аннотациями на графиках."""
+#         return self._text_manager
+#
+#     @property
+#     def output(self):
+#         """Управляет сохранением и отображением графиков."""
+#         return self._output_manager
+#
+#     @property
+#     def style(self):
+#         """Управляет цветами, стилями и цветовыми картами."""
+#         return self._style_manager
 
-    def boxplot(self, *args, **kwargs):
-        """
-        Диаграмма размаха (boxplot).
-        """
-        return plt.boxplot(*args, **kwargs)
+# Пример использования:
+# plot_facade = PlotFacade()
 
-    def pie(self, *args, **kwargs):
-        """
-        Круговая диаграмма.
-        """
-        return plt.pie(*args, **kwargs)
+# Теперь при plot_facade. вы увидите только свойства: figure, plot, appearance, text, output, style
+# fig, ax = plot_facade.figure.subplots()
 
+# Построение графика
+# plot_facade.plot.plot([1, 2, 3], [2, 3, 1])
+plot_facade.appearance.xlabel("Ось X")
 
-class Axis:
-    def __init__(self):
-        raise NotImplementedError()
+# Настройка внешнего вида
+# plot_facade.appearance.title("Пример графика")
+# plot_facade.appearance.xlabel("Ось X")
+# plot_facade.appearance.ylabel("Ось Y")
 
-    def xlabel(self, *args, **kwargs):
-        """
-        Устанавливает метку по оси X.
-        """
-        return plt.xlabel(*args, **kwargs)
-
-    def ylabel(self, *args, **kwargs):
-        """
-        Устанавливает метку по оси Y.
-        """
-        return plt.ylabel(*args, **kwargs)
-
-    def xlim(self, *args, **kwargs):
-        """
-        Устанавливает границы оси X.
-        """
-        return plt.xlim(*args, **kwargs)
-
-    def ylim(self, *args, **kwargs):
-        """
-        Устанавливает границы оси Y.
-        """
-        return plt.ylim(*args, **kwargs)
-
-    def xticks(self, *args, **kwargs):
-        """
-        Устанавливает значения на оси X.
-        """
-        return plt.xticks(*args, **kwargs)
-
-    def yticks(self, *args, **kwargs):
-        """
-        Устанавливает значения на оси Y.
-        """
-        return plt.yticks(*args, **kwargs)
-
-    def grid(self, *args, **kwargs):
-        """
-        Включает или отключает сетку на графике.
-        """
-        return plt.grid(*args, **kwargs)
-
-
-class Labels:
-    def __init__(self):
-        raise NotImplementedError()
-
-    def title(self, *args, **kwargs):
-        """
-        Устанавливает заголовок графика.
-        """
-        return plt.title(*args, **kwargs)
-
-    def suptitle(self, *args, **kwargs):
-        """
-        Устанавливает общий заголовок для всех графиков на фигуре.
-        """
-        return plt.suptitle(*args, **kwargs)
-
-    def legend(self, *args, **kwargs):
-        """
-        Добавляет легенду на график.
-        """
-        return plt.legend(*args, **kwargs)
-
-    def annotate(self, *args, **kwargs):
-        """
-        Добавляет аннотацию на график.
-        """
-        return plt.annotate(*args, **kwargs)
-
-
-class Styles:
-    def __init__(self):
-        raise NotImplementedError()
-
-    def style(self, *args, **kwargs):
-        """
-        Устанавливает стиль графика.
-        """
-        return plt.style.use(*args, **kwargs)
-
-    def colormap(self, *args, **kwargs):
-        """
-        Устанавливает цветовую карту.
-        """
-        return plt.set_cmap(*args, **kwargs)
-
-
-class Layout:
-    def __init__(self):
-        raise NotImplementedError()
-
-    def figure(self, *args, **kwargs):
-        """
-        Создает новую фигуру.
-        """
-        return plt.figure(*args, **kwargs)
-
-    def subplot(self, *args, **kwargs):
-        """
-        Добавляет подграфик (subplot) на фигуру.
-        """
-        return plt.subplot(*args, **kwargs)
-
-    def subplots(self, *args, **kwargs):
-        """
-        Создает несколько подграфиков на фигуре.
-        """
-        return plt.subplots(*args, **kwargs)
-
-    def tight_layout(self, *args, **kwargs):
-        """
-        Автоматическая компоновка графиков на фигуре.
-        """
-        return plt.tight_layout(*args, **kwargs)
-
-    def show(self, *args, **kwargs):
-        """
-        Показывает все графики.
-        """
-        return plt.show(*args, **kwargs)
-
-
-# Пример использования
-plot = Plot()
-axis = Axis()
-labels = Labels()
-styles = Styles()
-layout = Layout()
-
-plot.plot([0, 1, 2], [2, 3, 5])
-axis.xlabel("Ось X")
-axis.ylabel("Ось Y")
-labels.title("Пример графика")
-layout.show()
+# Отображение графика
+plot_facade.output.show()
