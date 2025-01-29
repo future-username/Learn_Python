@@ -587,19 +587,19 @@
 #
 #     def title(self):
 #         return self.__text.title()
-def write_doc(param: str) -> str:
-    doc_info = str().__getattribute__(param.strip().split('.')[-1].removesuffix('()')).__doc__
-
-    n = '"""'
-
-    return f"\t\t{n}\t\t\n{doc_info}\n{n}".replace('\n', '\n\t\t')
-
-
-for line in open('another_try_code.py'):
-    # if line.startswith('def'):
-    #     print(line)
-
-    if line.strip().startswith('return'):
-        print(write_doc(line))
-    print(line, end='')
+# def write_doc(param: str) -> str:
+#     doc_info = str().__getattribute__(param.strip().split('.')[-1].removesuffix('()')).__doc__
+#
+#     n = '"""'
+#
+#     return f"\t\t{n}\t\t\n{doc_info}\n{n}".replace('\n', '\n\t\t')
+#
+#
+# for line in open('another_try_code.py'):
+#     # if line.startswith('def'):
+#     #     print(line)
+#
+#     if line.strip().startswith('return'):
+#         print(write_doc(line))
+#     print(line, end='')
 
