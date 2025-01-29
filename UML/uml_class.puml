@@ -1,0 +1,80 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+interface _MyString {
+    +__init__(line: str): void
+    +switch_cases: SwitchCase
+    +justifies: JustifyString
+    +is_methods: IsString
+}
+
+interface _SwitchCases {
+    +__init__(line: str): void
+    +upper(): str
+    +lower(): str
+    +title(): str
+}
+
+class SwitchCases {
+    -__line: str
+    +__init__(line: str): void
+    +upper(): str
+    +lower(): str
+    +title(): str
+}
+
+interface _IsString {
+    -__line: str
+    +__init__(line: str): void
+    +isupper(): bool
+    +islower(): bool
+    +istitle(): bool
+}
+
+class IsString {
+    -__line: str
+    +__init__(line: str): void
+    +isupper(): bool
+    +islower(): bool
+    +istitle(): bool
+}
+
+interface _JustifyString {
+    -__line: str
+    +__init__(line: str): void
+    +center(width:int, fill_char:str): str
+    +left_just(width:int, fill_char:str): str
+    +right_just(width:int, fill_char:str): str
+}
+
+class JustifyString {
+    -__line: str
+    +__init__(line: str): void
+    +center(width:int, fill_char:str): str
+    +left_just(width:int, fill_char:str): str
+    +right_just(width:int, fill_char:str): str
+}
+
+class MyString {
+    -__line: str
+    +__init__(line: str): void
+    +switch_cases: SwitchCases
+    +justifies(): list
+    +is_methods(): str
+    +__str__(): str
+}
+
+'_SwitchCases *-- _MyString
+'_IsString *-- _MyString
+'_JustifyString *-- _MyString
+
+_MyString <|.. MyString: inheritance
+_SwitchCases <|.. SwitchCases: inheritance
+_JustifyString <|.. JustifyString: inheritance
+_IsString <|.. IsString: inheritance
+
+'SwitchCases *-- MyString
+'IsString *-- MyString
+'JustifyString *-- MyString
+
+@enduml

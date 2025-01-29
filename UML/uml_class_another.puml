@@ -1,0 +1,103 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+interface _MyString {
+    .. Attributes ..
+    __line: str
+    .. Property ..
+    line: str
+    .. Constructor ..
+    +__init__(line: str): void
+    .. Methods ..
+    +switch_cases: SwitchCase
+    """
+    Doc for methods
+    """
+    ....
+    +justifies: JustifyString
+    +is_methods: IsString
+}
+
+class User {
+  .. Simple Getter ..
+  + getName()
+  + getAddress()
+  .. Some setter ..
+  + setName()
+  __ private data __
+  int age
+  -- encrypted --
+  String password
+}
+
+interface _SwitchCases {
+    +__init__(line: str): void
+    -__line: str
+    +upper(): str
+    +lower(): str
+    +title(): str
+}
+
+'class SwitchCases {
+'    -__line: str
+'    +__init__(line: str): void
+'    +upper(): str
+'    +lower(): str
+'    +title(): str
+'}
+
+interface _IsString {
+    -__line: str
+    +__init__(line: str): void
+    +isupper(): bool
+    +islower(): bool
+    +istitle(): bool
+}
+
+'class IsString {
+'    -__line: str
+'    +__init__(line: str): void
+'    +isupper(): bool
+'    +islower(): bool
+'    +istitle(): bool
+'}
+
+interface _JustifyString {
+    -__line: str
+    +__init__(line: str): void
+    +center(width:int, fill_char:str): str
+    +left_just(width:int, fill_char:str): str
+    +right_just(width:int, fill_char:str): str
+}
+
+'class JustifyString {
+'    -__line: str
+'    +__init__(line: str): void
+'    +center(width:int, fill_char:str): str
+'    +left_just(width:int, fill_char:str): str
+'    +right_just(width:int, fill_char:str): str
+'}
+'
+'class MyString {
+'    -__line: str
+'    +__init__(line: str): void
+'    +switch_cases: SwitchCases
+'    +justifies(): list
+'    +is_methods(): str
+'    +__str__(): str
+'}
+
+_SwitchCases *-- _MyString: composition
+_IsString *-- _MyString: composition
+_JustifyString *-- _MyString: composition
+
+'_MyString <|-- MyString
+'_SwitchCases <|-- SwitchCases
+'_JustifyString <|-- JustifyString
+'_IsString <|-- IsString
+
+'SwitchCases *-- MyString
+'IsString *-- MyString
+'JustifyString *-- MyString
+
+@enduml

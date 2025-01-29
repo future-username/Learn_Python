@@ -27,10 +27,10 @@ class _MyString(ABC):
     @property
     def justifies(self) -> list:
         """
-        Group of methods str, which justify tabs
+        getter, Group of methods str, which justify tabs
         :return: group of useful methods, which objects
         """
-        raise NotImplementedError()
+        raise (NotImplementedError())
 
     @abstractmethod
     @property
@@ -40,7 +40,6 @@ class _MyString(ABC):
         :return: group of useful methods, which objects
         """
         raise NotImplementedError()
-
 
 class _SwitchCases(ABC):
     """
@@ -92,8 +91,6 @@ class SwitchCases(_SwitchCases):
         return self.__line.upper()
 
 
-
-
 class MyString(_MyString):
     def __init__(self, line):
         self.__line = line
@@ -113,6 +110,6 @@ class MyString(_MyString):
 
 
 line  = MyString('fdCV  kHVGHvhj         vGHV')
-print(line)
+print(line.justifie)
 print(line.switch_cases.title())
 print(line)

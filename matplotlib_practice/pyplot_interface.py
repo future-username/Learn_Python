@@ -705,39 +705,39 @@
 # layout.show()
 
 
-import matplotlib.pyplot as plt
-
-class FigureManager:
-    """
-    Управляет созданием и настройкой фигур и осей.
-    """
-    def figure(self):
-        """Создает новую фигуру."""
-        return plt.figure()
-
-    def subplots(self):
-        """Создает фигуру и набор осей."""
-        return plt.subplots()
-
-    def add_subplot(self):
-        """Добавляет оси на текущую фигуру."""
-        return plt.subplot()
-
-    def gca(self):
-        """Возвращает текущие оси."""
-        return plt.gca()
-
-    def gcf(self):
-        """Возвращает текущую фигуру."""
-        return plt.gcf()
-
-    def clf(self):
-        """Очищает текущую фигуру."""
-        plt.clf()
-
-    def close(self):
-        """Закрывает фигуру."""
-        plt.close()
+# import matplotlib.pyplot as plt
+#
+# class FigureManager:
+#     """
+#     Управляет созданием и настройкой фигур и осей.
+#     """
+#     def figure(self):
+#         """Создает новую фигуру."""
+#         return plt.figure()
+#
+#     def subplots(self):
+#         """Создает фигуру и набор осей."""
+#         return plt.subplots()
+#
+#     def add_subplot(self):
+#         """Добавляет оси на текущую фигуру."""
+#         return plt.subplot()
+#
+#     def gca(self):
+#         """Возвращает текущие оси."""
+#         return plt.gca()
+#
+#     def gcf(self):
+#         """Возвращает текущую фигуру."""
+#         return plt.gcf()
+#
+#     def clf(self):
+#         """Очищает текущую фигуру."""
+#         plt.clf()
+#
+#     def close(self):
+#         """Закрывает фигуру."""
+#         plt.close()
 
 # class PlotDrawer:
 #     """
@@ -922,7 +922,7 @@ class FigureManager:
 
 # Построение графика
 # plot_facade.plot.plot([1, 2, 3], [2, 3, 1])
-plot_facade.appearance.xlabel("Ось X")
+# plot_facade.appearance.xlabel("Ось X")
 
 # Настройка внешнего вида
 # plot_facade.appearance.title("Пример графика")
@@ -930,4 +930,166 @@ plot_facade.appearance.xlabel("Ось X")
 # plot_facade.appearance.ylabel("Ось Y")
 
 # Отображение графика
-plot_facade.output.show()
+# plot_facade.output.show()
+
+
+from abc import ABC, abstractmethod
+
+
+class _MyString(ABC):
+    """
+    Interface for string operations.
+    """
+
+    __line: str
+
+    @property
+    @abstractmethod
+    def line(self) -> str:
+        """
+        Returns the current line.
+        """
+        pass
+
+    @abstractmethod
+    def __init__(self, line: str) -> None:
+        """
+        Initializes the string.
+        :param line: The initial string value.
+        """
+        pass
+
+    @abstractmethod
+    def switch_cases(self) -> '_SwitchCases':
+        """
+        Returns an instance of `_SwitchCases` providing case-switching methods.
+        """
+        pass
+
+    @abstractmethod
+    def justifies(self) -> '_JustifyString':
+        """
+        Returns an instance of `_JustifyString` providing alignment methods.
+        """
+        pass
+
+    @abstractmethod
+    def is_methods(self) -> '_IsString':
+        """
+        Returns an instance of `_IsString` providing boolean checks for string characteristics.
+        """
+        pass
+
+class _SwitchCases(ABC):
+    """
+    Interface for string case-switching methods.
+    """
+
+    __line: str
+
+    @abstractmethod
+    def __init__(self, line: str) -> None:
+        """
+        Initializes with a string line.
+        :param line: The string whose cases will be switched.
+        """
+        pass
+
+    @abstractmethod
+    def upper(self) -> str:
+        """
+        Returns the string in uppercase.
+        """
+        pass
+
+    @abstractmethod
+    def lower(self) -> str:
+        """
+        Returns the string in lowercase.
+        """
+        pass
+
+    @abstractmethod
+    def title(self) -> str:
+        """
+        Returns the string in title case.
+        """
+        pass
+
+class _IsString(ABC):
+    """
+    Interface for checking string characteristics.
+    """
+
+    __line: str
+
+    @abstractmethod
+    def __init__(self, line: str) -> None:
+        """
+        Initializes with a string line.
+        :param line: The string to check.
+        """
+        pass
+
+    @abstractmethod
+    def isupper(self) -> bool:
+        """
+        Returns True if the string is in uppercase.
+        """
+        pass
+
+    @abstractmethod
+    def islower(self) -> bool:
+        """
+        Returns True if the string is in lowercase.
+        """
+        pass
+
+    @abstractmethod
+    def istitle(self) -> bool:
+        """
+        Returns True if the string is in title case.
+        """
+        pass
+
+class _JustifyString(ABC):
+    """
+    Interface for adjusting string alignment.
+    """
+
+    __line: str
+
+    @abstractmethod
+    def __init__(self, line: str) -> None:
+        """
+        Initializes with a string line.
+        :param line: The string to justify.
+        """
+        pass
+
+    @abstractmethod
+    def center(self, width: int, fill_char: str = ' ') -> str:
+        """
+        Centers the string with the specified width and fill character.
+        :param width: Total width of the centered string.
+        :param fill_char: Character used for filling.
+        """
+        pass
+
+    @abstractmethod
+    def left_just(self, width: int, fill_char: str = ' ') -> str:
+        """
+        Left-justifies the string with the specified width and fill character.
+        :param width: Total width of the left-justified string.
+        :param fill_char: Character used for filling.
+        """
+        pass
+
+    @abstractmethod
+    def right_just(self, width: int, fill_char: str = ' ') -> str:
+        """
+        Right-justifies the string with the specified width and fill character.
+        :param width: Total width of the right-justified string.
+        :param fill_char: Character used for filling.
+        """
+        pass

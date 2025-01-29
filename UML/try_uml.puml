@@ -1,0 +1,86 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+interface _SwitchCases {
+    __ Constructor __
+    +__init__(line: str):
+    """
+    info constructor
+    """
+    __ Attributes __
+    -__line: str
+    __ Methods __
+    +upper(): -> str
+    """
+    info upper
+    """
+    ..
+    +lower(): str
+    """
+    info lower
+    """
+    ..
+    +title(): str
+    """
+    info title
+    """
+}
+
+interface _JustifyString {
+    __ Constructor __
+    +__init__(line: str):
+    """
+    info constructor
+    """
+    __ Attributes __
+    -__line: str
+    __ Methods __
+    +center(width:int, fill_char:str): str
+    """
+    info center
+    """
+    ..
+    +left_just(width:int, fill_char:str): str
+    """
+    info left_just
+    """
+    ..
+    +right_just(width:int, fill_char:str): str
+    """
+    info right_just
+    """
+}
+
+interface _MyString {
+    __ Constructor __
+    +__init__(number: str):
+    """
+    info constructor
+    """
+    __ Attributes __
+    -__number: str
+    -__number_234: str
+    -__number_5454: float
+    -__number_3745: int
+    __ Methods __
+    +name(): -> str
+    """
+    info name
+    """
+    ..
+    +password(): int
+    """
+    info password
+    """
+    ..
+    +title_234(): str
+    """
+    info title_234
+    """
+    +title_2346(): list
+    """
+    info title_2346
+    """
+}
+
+@enduml
