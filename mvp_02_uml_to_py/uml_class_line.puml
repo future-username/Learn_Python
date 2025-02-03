@@ -1,0 +1,56 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+    InterFace _MyString {
+    .. Property ..
+    line: str
+    .. Constructor ..
+    +__init__(line: str): void
+    .. Attributes ..
+    __line: str
+    .. Methods ..
+    +switch_cases: SwitchCase
+    "short desc"
+    ..
+    +justifies: JustifyString
+    +is_methods: IsString
+}
+
+interface _SwitchCases {
+    .. Constructor ..
+    +__init__(line: str): void
+    .. Attributes ..
+    -__line: str
+    .. Methods ..
+    +upper(): -> str
+    +lower(): str
+    +title(): str
+}
+
+interface _IsString {
+    .. Constructor ..
+    +__init__(line: str): void
+    .. Attributes ..
+    -__line: str
+    .. Methods ..
+    +isupper(): bool
+    +islower(): bool
+    +istitle(): bool
+}
+
+interface _JustifyString {
+    .. Constructor ..
+    +__init__(line: str): void
+    .. Attributes ..
+    -__line: str
+    .. Methods ..
+    +center(width:int, fill_char:str): str
+    +left_just(width:int, fill_char:str): str
+    +right_just(width:int, fill_char:str): str
+}
+
+_SwitchCases *-- _MyString: composition
+_IsString *-- _MyString: composition
+_JustifyString *-- _MyString: composition
+
+@enduml
