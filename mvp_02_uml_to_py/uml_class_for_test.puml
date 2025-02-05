@@ -1,0 +1,15 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+interface _SwitchCases {
+    .. Constructor ..
+    +__init__(line: str):
+    .. Attributes ..
+    -__line: str
+    .. Methods ..
+    +upper(): -> str
+    +lower(): -> str
+    +title1(value: str, number: int): -> str
+    +title2(value: str ='string', number: int=0): -> str
+}
+@enduml

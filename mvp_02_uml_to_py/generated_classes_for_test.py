@@ -1,37 +1,40 @@
 class _SwitchCases:
-    def __init__(self):
-        self.__line = None
+    def __init__(self, line: str):
+        self.__line = line
 
-    def lower(self):
-        pass
+    def upper(self) -> str:
+        raise NotImplementedError()
 
-    def title(self):
-        pass
+    def lower(self) -> str:
+        raise NotImplementedError()
+
+    def title(self) -> str:
+        raise NotImplementedError()
 
 
 class _IsString:
-    def __init__(self):
-        self.__line = None
+    def __init__(self, line: str):
+        self.__line = line
 
-    def isupper(self):
-        pass
+    def isupper(self) -> bool:
+        raise NotImplementedError()
 
-    def islower(self):
-        pass
+    def islower(self) -> bool:
+        raise NotImplementedError()
 
-    def istitle(self):
-        pass
+    def istitle(self) -> bool:
+        raise NotImplementedError()
 
 
 class _JustifyString:
-    def __init__(self):
-        self.__line = None
+    def __init__(self, line: str):
+        self.__line = line
 
-    def center(self, width: int, fill_char: str):
-        pass
+    def center(self, width: int, fill_char: str) -> str:
+        raise NotImplementedError()
 
-    def left_just(self, width: int, fill_char: str):
-        pass
+    def left_just(self, width: int, fill_char: str) -> str:
+        raise NotImplementedError()
 
-    def right_just(self, width: int, fill_char: str):
-        pass
+    def right_just(self, width: int, fill_char: str) -> str:
+        raise NotImplementedError()

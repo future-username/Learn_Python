@@ -1,19 +1,19 @@
 @startuml
 skinparam classAttributeIconSize 0
 
-    InterFace _MyString {
-    .. Property ..
-    line: str
-    .. Constructor ..
-    +__init__(line: str): void
-    .. Attributes ..
-    __line: str
-    .. Methods ..
-    +switch_cases: SwitchCase
-    "short desc"
-    ..
-    +justifies: JustifyString
-    +is_methods: IsString
+InterFace _MyString {
+.. Property ..
+line: str
+.. Constructor ..
++__init__(line: str): void
+.. Attributes ..
+__line: str
+.. Methods ..
++switch_cases: SwitchCase
+"short desc"
+..
++justifies: JustifyString
++is_methods: IsString
 }
 
 interface _SwitchCases {
@@ -44,9 +44,9 @@ interface _JustifyString {
     .. Attributes ..
     -__line: str
     .. Methods ..
-    +center(width:int, fill_char:str): str
-    +left_just(width:int, fill_char:str): str
-    +right_just(width:int, fill_char:str): str
+    +center(width: int, fill_char: str): str
+    +left_just(width: int, fill_char: str): str
+    +right_just(width: int, fill_char: str): str
 }
 
 _SwitchCases *-- _MyString: composition
