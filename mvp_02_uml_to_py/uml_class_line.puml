@@ -2,6 +2,9 @@
 skinparam classAttributeIconSize 0
 
 InterFace _MyString {
+"""
+class contains some methods which switch chars
+"""
 .. Property ..
 line: str
 .. Constructor ..
@@ -17,6 +20,9 @@ __line: str
 }
 
 interface _SwitchCases {
+    """
+    class contains some methods which switch chars
+    """
     .. Constructor ..
     +__init__(line: str): void
     .. Attributes ..
@@ -28,6 +34,9 @@ interface _SwitchCases {
 }
 
 interface _IsString {
+    """
+    class contains some methods which switch chars
+    """
     .. Constructor ..
     +__init__(line: str): void
     .. Attributes ..
