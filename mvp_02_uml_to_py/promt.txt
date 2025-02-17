@@ -1,0 +1,177 @@
+import re
+
+
+def extract_all_interfaces(text):
+    pattern = r'interface (\w+)\s*\{([^}]+)\}'
+    matches = re.findall(pattern, text, re.DOTALL)
+    interfaces = {}
+    for name, content in matches:
+        interfaces[name] = content.strip()
+    return interfaces
+
+
+def parse_interface_content(content):
+    method_pattern = r'^\s*([+-])(\w+)\(([^)]*)\)(?:\s*->\s*(\w+))?'
+    attribute_pattern = r'^\s*([+-])(\w+):\s*(\w+)'
+    doc_pattern = r'^\s*"""(.+)"""'
+
+    sections = {
+        'doc': None,
+        'constructor': [],
+        'attributes': [],
+        'methods': []
+    }
+
+    for line in content.split('\n'):
+        line = line.strip()
+        if not line:
+            continue
+
+        # Парсинг docstring
+        if doc_match := re.match(doc_pattern, line):
+            sections['doc'] = doc_match.group(1).strip()
+            continue
+
+        # Игнорируем секционные комментарии
+        if line.startswith('..'):
+            continue
+
+        # Парсинг методов
+        if method_match := re.match(method_pattern, line):
+            sections['methods' if method_match.group(2) != '__init__' else 'constructor'].append(method_match.groups())
+
+        # Парсинг атрибутов
+        elif attr_match := re.match(attribute_pattern, line):
+            sections['attributes'].append(attr_match.groups())
+
+    return sections
+
+
+def generate_class_code(interface_name, content):
+    sections = parse_interface_content(content)
+    code = [f'class {interface_name}:']
+
+    # Добавляем docstring класса
+    if sections['doc']:
+        code.append(f'    """{sections["doc"]}"""')
+
+    # Генерация конструктора
+    if sections['constructor']:
+        _, name, params, _ = sections['constructor'][0]
+        param_list = [p.strip() for p in params.split(',') if p.strip()]
+        params_str = 'self' + (', ' + ', '.join(param_list) if param_list else '')
+        code.append(f'    def {name}({params_str}):')
+        for param in param_list:
+            var_name = param.split(':')[0].strip()
+            code.append(f'        self.__{var_name} = {var_name}')
+
+    # Генерация методов
+    for method in sections['methods']:
+        vis, name, params, ret_type = method
+        param_list = []
+        for param in params.split(','):
+            param = param.strip()
+            if '=' in param:
+                p, default = map(str.strip, param.split('=', 1))
+                param = f'{p} = {default}'
+            param_list.append(param)
+
+        params_str = 'self' + (', ' + ', '.join(param_list) if param_list else '')
+        return_type = f' -> {ret_type}' if ret_type else ''
+        code.append(f'\n    def {name}({params_str}){return_type}:\n        raise NotImplementedError()')
+
+    return '\n'.join(code)
+
+
+def generate_python_classes(interfaces):
+    return '\n\n'.join(
+        generate_class_code(name, content)
+        for name, content in interfaces.items()
+    )
+
+
+def save_python_classes_to_file(filename, class_code):
+    with open(filename, 'w', encoding='utf-8') as file:
+        file.write(class_code)
+
+
+if __name__ == "__main__":
+    with open('uml_class_line.puml', 'r', encoding='utf-8') as f:
+        uml_content = f.read()
+
+    interfaces = extract_all_interfaces(uml_content)
+    generated_code = generate_python_classes(interfaces)
+    save_python_classes_to_file('generated_classes.py', generated_code)
+    print(generated_code)
+
+это код который надо исправить:
+1. вот исходный пример uml ```@startuml
+skinparam classAttributeIconSize 0
+
+InterFace _MyString {
+"""
+class contains some methods which switch chars
+"""
+.. Property ..
+line: str
+.. Constructor ..
++__init__(line: str): void
+.. Attributes ..
+__line: str
+.. Methods ..
++switch_cases: SwitchCase
+"short desc"
+..
++justifies: JustifyString
++is_methods: IsString
+}
+
+interface _SwitchCases {
+    """
+    class contains some methods which switch chars
+    """
+    .. Constructor ..
+    +__init__(line: str): void
+    .. Attributes ..
+    -__line: str
+    .. Methods ..
+    +upper(): -> str
+    +lower(): str
+    +title(): str
+}
+
+interface _IsString {
+    """
+    class contains some methods which switch chars
+    """
+    .. Constructor ..
+    +__init__(line: str): void
+    .. Attributes ..
+    -__line: str
+    .. Methods ..
+    +isupper(): bool
+    +islower(): bool
+    +istitle(): bool
+}
+
+interface _JustifyString {
+    .. Constructor ..
+    +__init__(line: str): void
+    .. Attributes ..
+    -__line: str
+    .. Methods ..
+    +center(width: int, fill_char: str): str
+    +left_just(width: int, fill_char: str): str
+    +right_just(width: int, fill_char: str): str
+}
+
+_SwitchCases *-- _MyString: composition
+_IsString *-- _MyString: composition
+_JustifyString *-- _MyString: composition
+
+@enduml
+```
+в uml есть комментарии к классу которые оформлены вот так """
+    class contains some methods which switch chars
+    """ если они есть то после объявления класса должен быть комментарий
+2) есть ошибка в результирующем py файле в def upper(self, ): и подобных методах, ошибка заключается в "self, " не должно быть запятой и пробела если нет параметров кроме self

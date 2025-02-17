@@ -24,7 +24,7 @@ interface _SwitchCases {
     class contains some methods which switch chars
     """
     .. Constructor ..
-    +__init__(line: str): void
+    +__init__(line: str):
     .. Attributes ..
     -__line: str
     .. Methods ..
@@ -38,7 +38,7 @@ interface _IsString {
     class contains some methods which switch chars
     """
     .. Constructor ..
-    +__init__(line: str): void
+    +__init__(line: str):
     .. Attributes ..
     -__line: str
     .. Methods ..
@@ -49,7 +49,16 @@ interface _IsString {
 
 interface _JustifyString {
     .. Constructor ..
-    +__init__(line: str): void
+    +__init__(line: str):
+    .. Attributes ..
+    -__line: str
+    .. Methods ..
+    +center(width: int, fill_char: str): str
+    +left_just(width: int, fill_char: str): str
+    +right_just(width: int, fill_char: str): str
+}
+
+interface _JustifyString1 {
     .. Attributes ..
     -__line: str
     .. Methods ..

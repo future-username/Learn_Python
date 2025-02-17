@@ -432,10 +432,270 @@
 #     print(generated_code)
 
 
+# import re
+#
+#
+# def extract_all_interfaces(text):
+#     pattern = r'interface (\w+)\s*\{([^}]+)\}'
+#     matches = re.findall(pattern, text, re.DOTALL)
+#     interfaces = {}
+#     for name, content in matches:
+#         interfaces[name] = content.strip()
+#     return interfaces
+#
+#
+# def parse_interface_content(content):
+#     method_pattern = r'^\s*([+-])(\w+)\(([^)]*)\)(?:\s*->\s*(\w+))?'
+#     attribute_pattern = r'^\s*([+-])(\w+):\s*(\w+)'
+#     doc_pattern = r'^\s*"""(.+)"""'
+#
+#     sections = {
+#         'doc': None,
+#         'constructor': [],
+#         'attributes': [],
+#         'methods': []
+#     }
+#
+#     for line in content.split('\n'):
+#         line = line.strip()
+#         if not line:
+#             continue
+#
+#         # Парсинг docstring
+#         if doc_match := re.match(doc_pattern, line):
+#             sections['doc'] = doc_match.group(1).strip()
+#             continue
+#
+#         # Игнорируем секционные комментарии
+#         if line.startswith('..'):
+#             continue
+#
+#         # Парсинг методов
+#         if method_match := re.match(method_pattern, line):
+#             sections['methods' if method_match.group(2) != '__init__' else 'constructor'].append(method_match.groups())
+#
+#         # Парсинг атрибутов
+#         elif attr_match := re.match(attribute_pattern, line):
+#             sections['attributes'].append(attr_match.groups())
+#
+#     return sections
+#
+#
+# def generate_class_code(interface_name, content):
+#     sections = parse_interface_content(content)
+#     code = [f'class {interface_name}:']
+#
+#     # Добавляем docstring класса
+#     if sections['doc']:
+#         code.append(f'    """{sections["doc"]}"""')
+#
+#     # Генерация конструктора
+#     if sections['constructor']:
+#         _, name, params, _ = sections['constructor'][0]
+#         param_list = [p.strip() for p in params.split(',') if p.strip()]
+#         params_str = 'self' + (', ' + ', '.join(param_list) if param_list else '')
+#         code.append(f'    def {name}({params_str}):')
+#         for param in param_list:
+#             var_name = param.split(':')[0].strip()
+#             code.append(f'        self.__{var_name} = {var_name}')
+#
+#     # Генерация методов
+#     for method in sections['methods']:
+#         vis, name, params, ret_type = method
+#         param_list = []
+#         for param in params.split(','):
+#             param = param.strip()
+#             if '=' in param:
+#                 p, default = map(str.strip, param.split('=', 1))
+#                 param = f'{p} = {default}'
+#             param_list.append(param)
+#
+#         params_str = 'self' + (', ' + ', '.join(param_list) if param_list else '')
+#         return_type = f' -> {ret_type}' if ret_type else ''
+#         code.append(f'\n    def {name}({params_str}){return_type}:\n        raise NotImplementedError()')
+#
+#     return '\n'.join(code)
+#
+#
+# def generate_python_classes(interfaces):
+#     return '\n\n'.join(
+#         generate_class_code(name, content)
+#         for name, content in interfaces.items()
+#     )
+#
+#
+# def save_python_classes_to_file(filename, class_code):
+#     with open(filename, 'w', encoding='utf-8') as file:
+#         file.write(class_code)
+#
+#
+# if __name__ == "__main__":
+#     with open('uml_class_line.puml', 'r', encoding='utf-8') as f:
+#         uml_content = f.read()
+#
+#     interfaces = extract_all_interfaces(uml_content)
+#     generated_code = generate_python_classes(interfaces)
+#     save_python_classes_to_file('generated_classes.py', generated_code)
+#     print(generated_code)
+
+
+# import re
+#
+# def extract_all_interfaces(text):
+#     pattern = r'interface (\w+)\s*\{([^}]+)\}'
+#     matches = re.findall(pattern, text, re.DOTALL)
+#     interfaces = {}
+#     for name, content in matches:
+#         interfaces[name] = content.strip()
+#     return interfaces
+#
+# def parse_interface_content(content):
+#     method_pattern = r'^\s*([+-])(\w+)\(([^)]*)\)(?:\s*->\s*(\w+))?'
+#     attribute_pattern = r'^\s*([+-])(\w+):\s*(\w+)'
+#     doc_pattern = r'"""(.*?)"""'
+#
+#     sections = {
+#         'doc': None,
+#         'constructor': [],
+#         'attributes': [],
+#         'methods': []
+#     }
+#
+#     lines = content.split('\n')
+#     i = 0
+#     while i < len(lines):
+#         line = lines[i].strip()
+#         if not line:
+#             i += 1
+#             continue
+#
+#         # Парсинг docstring
+#         if '"""' in line:
+#             doc_match = re.search(doc_pattern, '\n'.join(lines[i:i+3]), re.DOTALL)
+#             if doc_match:
+#                 sections['doc'] = doc_match.group(1).strip()
+#                 i += 2  # Пропускаем строки docstring
+#             i += 1
+#             continue
+#
+#         # Игнорируем секционные комментарии
+#         if line.startswith('..'):
+#             i += 1
+#             continue
+#
+#         # Парсинг методов
+#         if method_match := re.match(method_pattern, line):
+#             sections['methods' if method_match.group(2) != '__init__' else 'constructor'].append(method_match.groups())
+#
+#         # Парсинг атрибутов
+#         elif attr_match := re.match(attribute_pattern, line):
+#             sections['attributes'].append(attr_match.groups())
+#
+#         i += 1
+#
+#     return sections
+#
+# def generate_class_code(interface_name, content):
+#     sections = parse_interface_content(content)
+#     code_lines = [f'class {interface_name}:']
+#
+#     # Добавляем docstring класса
+#     if sections['doc']:
+#         code_lines.append(f'    """\n\t{sections["doc"]}\n\t"""\n')
+#
+#     # Генерация конструктора
+#     if sections['constructor']:
+#         _, name, params, _ = sections['constructor'][0]
+#         param_list = [p.strip() for p in params.split(',') if p.strip()]
+#         params_str = 'self' + (', ' + ', '.join(param_list) if param_list else '')
+#         code_lines.append(f'    def {name}({params_str}):')
+#         for param in param_list:
+#             var_name = param.split(':')[0].strip()
+#             code_lines.append(f'        self.__{var_name} = {var_name}')
+#
+#     # Генерация методов
+#     for method in sections['methods']:
+#         vis, name, params, ret_type = method
+#         param_list = []
+#         for param in params.split(','):
+#             param = param.strip()
+#             if param:  # Только если параметр не пустой
+#                 if '=' in param:
+#                     p, default = map(str.strip, param.split('=', 1))
+#                     param = f'{p} = {default}'
+#                 param_list.append(param)
+#
+#         # Формируем строку параметров
+#         params_str = 'self'
+#         if param_list:
+#             params_str += ', ' + ', '.join(param_list)
+#
+#         return_type = f' -> {ret_type}' if ret_type else ''
+#         code_lines.append(f'\n    def {name}({params_str}){return_type}:')
+#         code_lines.append('        raise NotImplementedError()')
+#
+#     return '\n'.join(code_lines)
+#
+# def generate_python_classes(interfaces):
+#     return '\n\n'.join(
+#         generate_class_code(name, content)
+#         for name, content in interfaces.items()
+#     )
+#
+# def save_python_classes_to_file(filename, class_code):
+#     with open(filename, 'w', encoding='utf-8') as file:
+#         file.write(class_code)
+#
+# if __name__ == "__main__":
+#     with open('uml_class_line.puml', 'r', encoding='utf-8') as f:
+#         uml_content = f.read()
+#
+#     interfaces = extract_all_interfaces(uml_content)
+#     generated_code = generate_python_classes(interfaces)
+#     save_python_classes_to_file('generated_classes.py', generated_code)
+#     print(generated_code)
+
+
 import re
+from typing import Dict, List, Optional, Tuple
+
+from dataclasses import dataclass
 
 
-def extract_all_interfaces(text):
+@dataclass
+class Method:
+    visibility: str
+    name: str
+    params: List[Tuple[str, Optional[str], Optional[str]]]
+    return_type: Optional[str]
+
+
+@dataclass
+class Attribute:
+    visibility: str
+    name: str
+    type: Optional[str]
+
+
+@dataclass
+class Interface:
+    name: str
+    doc: Optional[str]
+    constructor: Optional[Method]
+    attributes: List[Attribute]
+    methods: List[Method]
+
+
+def extract_all_interfaces(text: str) -> Dict[str, str]:
+    """
+    Извлекает все интерфейсы из текста UML-диаграммы.
+
+    Args:
+        text: Текст UML-диаграммы.
+
+    Returns:
+        Словарь, где ключ - имя интерфейса, значение - содержимое интерфейса.
+    """
     pattern = r'interface (\w+)\s*\{([^}]+)\}'
     matches = re.findall(pattern, text, re.DOTALL)
     interfaces = {}
@@ -444,87 +704,190 @@ def extract_all_interfaces(text):
     return interfaces
 
 
-def parse_interface_content(content):
-    method_pattern = r'^\s*([+-])(\w+)\(([^)]*)\)(?:\s*->\s*(\w+))?'
-    attribute_pattern = r'^\s*([+-])(\w+):\s*(\w+)'
-    doc_pattern = r'^\s*"""(.+)"""'
+def parse_interface_content(content: str) -> Interface:
+    """
+    Разбирает содержимое интерфейса на составные части.
 
-    sections = {
-        'doc': None,
-        'constructor': [],
-        'attributes': [],
-        'methods': []
-    }
+    Args:
+        content: Содержимое интерфейса.
 
-    for line in content.split('\n'):
-        line = line.strip()
-        if not line:
-            continue
+    Returns:
+        Объект Interface.
+    """
+    doc = _parse_docstring(content)
+    constructor = _parse_constructor(content)
+    attributes = _parse_attributes(content)
+    methods = _parse_methods(content)
 
-        # Парсинг docstring
-        if doc_match := re.match(doc_pattern, line):
-            sections['doc'] = doc_match.group(1).strip()
-            continue
-
-        # Игнорируем секционные комментарии
-        if line.startswith('..'):
-            continue
-
-        # Парсинг методов
-        if method_match := re.match(method_pattern, line):
-            sections['methods' if method_match.group(2) != '__init__' else 'constructor'].append(method_match.groups())
-
-        # Парсинг атрибутов
-        elif attr_match := re.match(attribute_pattern, line):
-            sections['attributes'].append(attr_match.groups())
-
-    return sections
-
-
-def generate_class_code(interface_name, content):
-    sections = parse_interface_content(content)
-    code = [f'class {interface_name}:']
-
-    # Добавляем docstring класса
-    if sections['doc']:
-        code.append(f'    """{sections["doc"]}"""')
-
-    # Генерация конструктора
-    if sections['constructor']:
-        _, name, params, _ = sections['constructor'][0]
-        param_list = [p.strip() for p in params.split(',') if p.strip()]
-        params_str = 'self' + (', ' + ', '.join(param_list) if param_list else '')
-        code.append(f'    def {name}({params_str}):')
-        for param in param_list:
-            var_name = param.split(':')[0].strip()
-            code.append(f'        self.__{var_name} = {var_name}')
-
-    # Генерация методов
-    for method in sections['methods']:
-        vis, name, params, ret_type = method
-        param_list = []
-        for param in params.split(','):
-            param = param.strip()
-            if '=' in param:
-                p, default = map(str.strip, param.split('=', 1))
-                param = f'{p} = {default}'
-            param_list.append(param)
-
-        params_str = 'self' + (', ' + ', '.join(param_list) if param_list else '')
-        return_type = f' -> {ret_type}' if ret_type else ''
-        code.append(f'\n    def {name}({params_str}){return_type}:\n        raise NotImplementedError()')
-
-    return '\n'.join(code)
-
-
-def generate_python_classes(interfaces):
-    return '\n\n'.join(
-        generate_class_code(name, content)
-        for name, content in interfaces.items()
+    return Interface(
+        name="",  # Имя будет присвоено позже
+        doc=doc,
+        constructor=constructor,
+        attributes=attributes,
+        methods=methods
     )
 
 
-def save_python_classes_to_file(filename, class_code):
+def _parse_docstring(content: str) -> Optional[str]:
+    """
+    Извлекает docstring из содержимого интерфейса.
+    """
+    doc_pattern = r'"""(.*?)"""'
+    doc_match = re.search(doc_pattern, content, re.DOTALL)
+    return doc_match.group(1).strip() if doc_match else None
+
+
+def _parse_constructor(content: str) -> Optional[Method]:
+    """
+    Извлекает конструктор из содержимого интерфейса
+    """
+    method_pattern = r'^\s*([+-])(__init__)\(([^)]*)\)(?:\s*->\s*(\w+))?'
+    match = re.search(method_pattern, content, re.MULTILINE)
+
+    if match:
+        visibility, name, params_str, return_type = match.groups()
+        params = _parse_params(params_str)
+        return Method(visibility, name, params, return_type)
+
+    return None
+def _parse_attributes(content: str) -> List[Attribute]:
+    """
+    Извлекает атрибуты из содержимого интерфейса.
+    """
+    attribute_pattern = r'^\s*([+-])(\w+):\s*(\w+)'
+    matches = re.findall(attribute_pattern, content, re.MULTILINE)
+    return [Attribute(visibility, name, type) for visibility, name, type in matches]
+
+
+def _parse_methods(content: str) -> List[Method]:
+    """
+    Извлекает методы из содержимого интерфейса (исключая конструктор).
+    """
+    method_pattern = r'^\s*([+-])(\w+)\(([^)]*)\)(?:\s*->\s*(\w+))?'
+    matches = re.findall(method_pattern, content, re.MULTILINE)
+    methods = []
+    for visibility, name, params_str, return_type in matches:
+        if name != '__init__':
+            params = _parse_params(params_str)
+            methods.append(Method(visibility, name, params, return_type))
+    return methods
+
+def _parse_params(params_str: str) -> List[Tuple[str, Optional[str], Optional[str]]]:
+    """
+    Разбирает строку параметров метода.
+    """
+    params = []
+    for param_str in params_str.split(','):
+        param_str = param_str.strip()
+        if not param_str:
+            continue
+
+        parts = param_str.split(':')
+        name = parts[0].strip()
+        type = parts[1].strip() if len(parts) > 1 else None
+
+        parts = param_str.split('=')
+        default = parts[1].strip() if len(parts) > 1 else None
+
+        params.append((name, type, default))
+    return params
+
+def generate_class_code(interface: Interface) -> str:
+    """
+    Генерирует код класса Python на основе разобранного интерфейса.
+
+    Args:
+        interface: Разобранный интерфейс.
+
+    Returns:
+        Строка с кодом класса.
+    """
+    code_lines = [f'class {interface.name}:']
+
+    if interface.doc:
+        code_lines.append(f'    """\n\t{interface.doc}\n\t"""\n')
+
+    if interface.constructor:
+        code_lines.append(_generate_constructor_code(interface.constructor))
+
+    if not interface.constructor and interface.attributes:
+        for attribute in interface.attributes:
+            code_lines.append(_generate_attribute_code(attribute))
+
+    for method in interface.methods:
+        code_lines.append(_generate_method_code(method))
+
+    return '\n'.join(code_lines)
+
+
+def _generate_constructor_code(constructor: Method) -> str:
+    """Генерирует код конструктора."""
+    params_str = 'self'
+    for name, type, default in constructor.params:
+        param_decl = name
+        if type:
+            param_decl += f': {type}'
+        if default:
+            param_decl += f' = {default}'
+        params_str += ', ' + param_decl
+
+    code = f'    def {constructor.name}({params_str}):\n'
+    for name, _, _ in constructor.params:
+        code += f'        self.__{name} = {name}\n'
+    return code
+
+def _generate_attribute_code(attribute: Attribute) -> str:
+    """
+    Генерирует код атрибута.
+    """
+    return f'    {attribute.name}: {attribute.type} = None\n'
+
+def _generate_method_code(method: Method) -> str:
+    """
+    Генерирует код метода (заглушку).
+    """
+    params_str = 'self'
+    for name, type_param, default in method.params:
+        param_decl = name
+        if type_param:
+            param_decl += f': {type_param}'
+        if default:
+            param_decl += f' = {default}'
+        params_str += ', ' + param_decl
+
+    return_type = f' -> {method.return_type}' if method.return_type else ''
+    code = f'    def {method.name}({params_str}){return_type}:\n'
+    code += '        raise NotImplementedError()\n'
+    return code
+
+def generate_python_classes(interfaces: Dict[str, str]) -> str:
+    """
+    Генерирует код классов Python для всех интерфейсов.
+
+    Args:
+        interfaces: Словарь с интерфейсами.
+
+    Returns:
+        Строка с кодом классов.
+    """
+    parsed_interfaces = []
+    for name, content in interfaces.items():
+        parsed_interface = parse_interface_content(content)
+        parsed_interface.name = name
+        parsed_interfaces.append(parsed_interface)
+
+    return '\n\n'.join(
+        generate_class_code(interface) for interface in parsed_interfaces
+    )
+
+def save_python_classes_to_file(filename: str, class_code: str) -> None:
+    """
+    Сохраняет сгенерированный код классов в файл.
+
+    Args:
+        filename: Имя файла.
+        class_code: Код классов.
+    """
     with open(filename, 'w', encoding='utf-8') as file:
         file.write(class_code)
 
