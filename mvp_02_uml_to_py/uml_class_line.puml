@@ -25,6 +25,11 @@ interface _SwitchCases {
     """
     .. Constructor ..
     +__init__(line: str):
+    """
+    Constructor
+    **Args:**
+        line: исходная строка
+    """
     .. Attributes ..
     -__line: str
     .. Methods ..
