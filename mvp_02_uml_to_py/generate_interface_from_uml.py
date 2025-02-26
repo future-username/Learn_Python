@@ -1044,34 +1044,38 @@ def _parse_method_docstring(content: str, method_name: str) -> Optional[str]:
 
 def _format_docstring(docstring: str) -> str:
     """
-    Форматирует docstring, разбивая его на секции (Args, Returns, и т.д.).
+    Форматирует строку документации (docstring), добавляя правильные отступы
+    и пустые строки в начале и конце. Разбивает текст на секции (например, Args, Returns)
+    и форматирует их для удобного чтения.
+
+    Args:
+        docstring (str): Исходная строка документации, которую нужно отформатировать.
+
+    Returns:
+        str: Отформатированная строка документации с отступами и пустыми строками.
+             Если входная строка пуста, возвращается пустая строка.
     """
-    lines = docstring.split('\n')
+    if not docstring:
+        return ""
+
     formatted_lines = []
-    current_section = ""
 
-    for line in lines:
-        line = line.strip()
-        if not line:
-            continue
+    formatted_lines.append("")
 
-        if line.startswith("Args:"):
-            current_section = "Args"
-            formatted_lines.append(line)
-        elif line.startswith("Returns:"):
-            current_section = "Returns"
-            formatted_lines.append(line)
-        elif current_section == "Args" and ":" in line:
-            formatted_lines.append("    " + line)  # PEP 8: 4 пробела для отступов
-        elif current_section and not line.startswith(".."):
-            formatted_lines.append("    " + line)
-        elif line.startswith(".."):
-            continue
+    for line in docstring.split("\n"):
+        print(line)
+        if line.strip().startswith('**'):
+            formatted_lines.append(f"\n\t\t{line.strip()}")
+        elif ':' in line and '**' not in line:
+            formatted_lines.append(f"\t\t\t{line.strip()}")
         else:
-            formatted_lines.append(line)
-            current_section = ""
+            formatted_lines.append(f"\t\t{line.strip()}")
 
-    return "\n".join(formatted_lines)
+    formatted_lines.append("")
+
+    formatted_docstring = "\n".join(formatted_lines)
+
+    return formatted_docstring
 
 
 def _parse_params(params_str: str) -> List[Tuple[str, Optional[str], Optional[str]]]:
@@ -1108,7 +1112,7 @@ def generate_class_code(interface: Interface) -> str:
     code_lines = [f'class {interface.name}:']  # PEP 8: пробелы после двоеточия
 
     if interface.doc:
-        code_lines.append(f'    """{interface.doc}"""\n')  # PEP 8: 4 пробела, одна пустая строка
+        code_lines.append(f'    """\n\t{interface.doc}\n\t"""\n')  # PEP 8: 4 пробела, одна пустая строка
 
     if interface.constructor:
         code_lines.append(_generate_constructor_code(interface.constructor))
@@ -1140,7 +1144,7 @@ def _generate_constructor_code(constructor: Method) -> str:
     code = f'    def {constructor.name}({params_str}):\n'  # PEP 8: 4 пробела
 
     if constructor.doc:
-        code += f'        """{constructor.doc}"""\n'  # PEP 8: 8 пробелов
+        code += f'        """\t\t{constructor.doc}\t\t"""\n'  # PEP 8: 8 пробелов
 
     for name, _, _ in constructor.params:
         code += f'        self.__{name} = {name}\n'  # PEP 8: 8 пробелов
@@ -1171,7 +1175,7 @@ def _generate_method_code(method: Method) -> str:
     code = f'    def {method.name}({params_str}){return_type}:\n'  # PEP 8: 4 пробела
 
     if method.doc:
-        code += f'        """{method.doc}"""\n'  # PEP 8: 8 пробелов
+        code += f'        """{method.doc}\t\t"""\n'  # PEP 8: 8 пробелов
 
     code += '        raise NotImplementedError()\n'  # PEP 8: 8 пробелов
     return code
@@ -1211,10 +1215,10 @@ def save_python_classes_to_file(filename: str, class_code: str) -> None:
 
 
 if __name__ == "__main__":
-    with open('uml_class_line.puml', 'r', encoding='utf-8') as f:
+    with open('uml_class_for_test.puml', 'r', encoding='utf-8') as f:
         uml_content = f.read()
 
     interfaces = extract_all_interfaces(uml_content)
     generated_code = generate_python_classes(interfaces)
-    save_python_classes_to_file('generated_classes.py', generated_code)
-    print(generated_code)
+    save_python_classes_to_file('generated_classes_from_test1.py', generated_code)
+    # print(generated_code)

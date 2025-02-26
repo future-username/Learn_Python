@@ -1,18 +1,27 @@
 @startuml
 skinparam classAttributeIconSize 0
-
 interface _SwitchCases {
     """
     class contains some methods which switch chars
     """
     .. Constructor ..
     +__init__(line: str):
+    """
+    Constructor
+    **Args:**
+        line: исходная строка
+    """
     .. Attributes ..
     -__line: str
     .. Methods ..
-    +upper(): -> str
-    +lower(): -> str
-    +title1(value: str, number: int): -> str
-    +title2(value: str = 'string', number: int = 0): -> str
+    +upper() -> str:
+    """
+    Return copy of the string in upper case
+    """
+    +lower() -> str:
+    """
+    Return copy of the string in lower case
+    """
+    +title() -> str:
 }
 @enduml

@@ -27,7 +27,7 @@
 #### Constructor
 
 ```python
-__init__(line: str)`
+__init__(line: str)
 ```
 
 **Args**:
