@@ -8,6 +8,7 @@ interface _SwitchCases {
     +__init__(line: str):
     """
     Constructor
+
     **Args:**
         line: исходная строка
     """
