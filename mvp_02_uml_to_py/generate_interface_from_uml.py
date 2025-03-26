@@ -1225,7 +1225,9 @@
 
 import re
 from typing import Dict, List, Optional, Tuple
+
 from dataclasses import dataclass
+
 
 @dataclass
 class Method:
@@ -1235,11 +1237,22 @@ class Method:
     return_type: Optional[str]
     doc: Optional[str] = None
 
+
 @dataclass
 class Attribute:
     visibility: str
     name: str
     type: Optional[str]
+
+
+@dataclass
+class Property:
+    visibility: str
+    name: str
+    return_type: Optional[str]
+    doc: Optional[str]
+    is_setter: bool = False
+
 
 @dataclass
 class Interface:
@@ -1248,168 +1261,347 @@ class Interface:
     constructor: Optional[Method]
     attributes: List[Attribute]
     methods: List[Method]
+    properties: List[Property]  # Добавили свойства
 
-def parse_md_docs(md_content: str) -> Dict[str, str]:
-    method_docs = {}
-    sections = re.split(r'\n## ', md_content)
-    for section in sections:
-        if not section.strip():
-            continue
-        header_line = section.split('\n', 1)[0].strip()
-        if header_line.startswith('`') and '`' in header_line:
-            # Это описание метода
-            method_name_match = re.match(r'`?(\w+)(?:\(\))?`?', header_line)
-            if not method_name_match:
-                continue
-            method_name = method_name_match.group(1)
-            content = section.split('\n', 1)[1] if '\n' in section else ''
-            content = re.sub(r'^---\s*', '', content, flags=re.MULTILINE).strip()
-            method_docs[method_name] = content
-        else:
-            # Это описание класса
-            class_doc = section.strip()
-            # Убираем лишние символы
-            # class_doc = re.sub(r'^# `_SwitchCases`\s*', '', class_doc)
-            class_doc = re.sub(r'^# `_(.*?)`\s*', '', class_doc)
-            class_doc = re.sub(r'---\s*', '', class_doc)
-            method_docs['__class__'] = class_doc.strip()
-    return method_docs
 
 def extract_all_interfaces(text: str) -> Dict[str, str]:
+    """
+    Извлекает все интерфейсы из текста UML-диаграммы.
+
+    Args:
+        text: Текст UML-диаграммы.
+
+    Returns:
+        Словарь, где ключ - имя интерфейса, значение - содержимое интерфейса.
+    """
     pattern = r'interface (\w+)\s*\{([^}]+)\}'
     matches = re.findall(pattern, text, re.DOTALL)
-    return {name: content.strip() for name, content in matches}
+    interfaces = {}
+    for name, content in matches:
+        interfaces[name] = content.strip()
+    return interfaces
+
+
+def parse_interface_content(content: str) -> Interface:
+    """
+    Разбирает содержимое интерфейса на составные части.
+
+    Args:
+        content: Содержимое интерфейса.
+
+    Returns:
+        Объект Interface.
+    """
+    doc = _parse_docstring(content)
+    constructor = _parse_constructor(content)
+    attributes = _parse_attributes(content)
+    methods = _parse_methods(content)
+    properties = _parse_properties(content)  # Добавили парсинг свойств
+
+    return Interface(
+        name="",  # Имя будет присвоено позже
+        doc=doc,
+        constructor=constructor,
+        attributes=attributes,
+        methods=methods,
+        properties=properties
+    )
+
 
 def _parse_docstring(content: str) -> Optional[str]:
+    """
+    Извлекает docstring из содержимого интерфейса.
+    """
     doc_pattern = r'"""(.*?)"""'
     doc_match = re.search(doc_pattern, content, re.DOTALL)
     return doc_match.group(1).strip() if doc_match else None
 
+
 def _parse_constructor(content: str) -> Optional[Method]:
+    """
+    Извлекает конструктор из содержимого интерфейса
+    """
     method_pattern = r'^\s*([+-])(__init__)\(([^)]*)\)(?:\s*->\s*(\w+))?'
     match = re.search(method_pattern, content, re.MULTILINE)
+
     if match:
         visibility, name, params_str, return_type = match.groups()
         params = _parse_params(params_str)
         doc = _parse_method_docstring(content, name)
         return Method(visibility, name, params, return_type, doc)
+
     return None
+
 
 def _parse_attributes(content: str) -> List[Attribute]:
+    """
+    Извлекает атрибуты из содержимого интерфейса.
+    """
     attribute_pattern = r'^\s*([+-])(\w+):\s*(\w+)'
     matches = re.findall(attribute_pattern, content, re.MULTILINE)
-    return [Attribute(visibility, name, type_) for visibility, name, type_ in matches]
+    return [Attribute(visibility, name, type) for visibility, name, type in matches]
+
+
+def _parse_properties(content: str) -> List[Property]:
+    """
+    Извлекает свойства из содержимого интерфейса.
+    """
+    property_pattern = r'^\s*([+-])(get|set)(\w+)\(([^)]*)\)(?:\s*->\s*(\w+))?'
+    matches = re.findall(property_pattern, content, re.MULTILINE)
+    properties = []
+
+    for visibility, accessor_type, name, params_str, return_type in matches:
+        doc = _parse_method_docstring(content, f"{accessor_type}{name}")
+        is_setter = accessor_type == "set"
+        property_name = name[0].lower() + name[1:]  # Приводим первую букву к нижнему регистру
+        properties.append(Property(visibility, property_name, return_type, doc, is_setter))
+
+    return properties
+
 
 def _parse_methods(content: str) -> List[Method]:
-    method_pattern = r'^\s*([+-])(\w+)\(([^)]*)\)(?:\s*->\s*(\w+))?'
+    """
+    Извлекает методы из содержимого интерфейса (исключая конструктор и свойства).
+    """
+    method_pattern = r'^\s*([+-])(?!get|set)(\w+)\(([^)]*)\)(?:\s*->\s*(\w+))?'
     matches = re.findall(method_pattern, content, re.MULTILINE)
-    return [Method(visibility, name, _parse_params(params_str), return_type, _parse_method_docstring(content, name))
-            for visibility, name, params_str, return_type in matches if name != '__init__']
+    methods = []
+    for visibility, name, params_str, return_type in matches:
+        if name != '__init__':
+            params = _parse_params(params_str)
+            doc = _parse_method_docstring(content, name)
+            methods.append(Method(visibility, name, params, return_type, doc))
+    return methods
+
 
 def _parse_method_docstring(content: str, method_name: str) -> Optional[str]:
+    """
+    Извлекает docstring для конкретного метода и форматирует его.
+    """
     method_start_pattern = rf'^\s*[+-]{method_name}\('
     method_start_match = re.search(method_start_pattern, content, re.MULTILINE)
+
     if method_start_match:
+        method_start_index = method_start_match.start()
         doc_pattern = r'"""(.*?)"""'
-        doc_match = re.search(doc_pattern, content[method_start_match.start():], re.DOTALL)
-        return doc_match.group(1).strip() if doc_match else None
+        doc_match = re.search(doc_pattern, content[method_start_index:], re.DOTALL)
+
+        if doc_match:
+            docstring = doc_match.group(1).strip()
+            return _format_docstring(docstring)
     return None
 
+
+def _format_docstring(docstring: str) -> str:
+    """
+    Форматирует строку документации (docstring), добавляя правильные отступы
+    и пустые строки в начале и конце.
+    """
+    if not docstring:
+        return ""
+
+    formatted_lines = []
+    formatted_lines.append("")
+
+    for line in docstring.split("\n"):
+        if line.strip().startswith('**'):
+            formatted_lines.append(f"\n\t\t{line.strip()}")
+        elif ':' in line and '**' not in line:
+            formatted_lines.append(f"\t\t\t{line.strip()}")
+        else:
+            formatted_lines.append(f"\t\t{line.strip()}")
+
+    formatted_lines.append("")
+    return "\n".join(formatted_lines)
+
+
 def _parse_params(params_str: str) -> List[Tuple[str, Optional[str], Optional[str]]]:
+    """
+    Разбирает строку параметров метода.
+    """
     params = []
-    for param in params_str.split(','):
-        param = param.strip()
-        if not param:
+    for param_str in params_str.split(','):
+        param_str = param_str.strip()
+        if not param_str:
             continue
-        name_type = param.split('=', 1)
-        name_type_default = name_type[0].split(':', 1)
-        name = name_type_default[0].strip()
-        type_ = name_type_default[1].strip() if len(name_type_default) > 1 else None
-        default = name_type[1].strip() if len(name_type) > 1 else None
+
+        parts = param_str.split(':')
+        name = parts[0].strip()
+        type_ = parts[1].strip() if len(parts) > 1 else None
+
+        parts = param_str.split('=')
+        default = parts[1].strip() if len(parts) > 1 else None
+
         params.append((name, type_, default))
     return params
 
-def generate_class_code(interface: Interface, class_doc: Optional[str]) -> str:
+
+def generate_class_code(interface: Interface) -> str:
+    """
+    Генерирует код класса Python на основе разобранного интерфейса.
+
+    Args:
+        interface: Разобранный интерфейс.
+
+    Returns:
+        Строка с кодом класса.
+    """
     code_lines = [f'class {interface.name}:']
-    if class_doc:
-        code_lines.append(f'    """{class_doc}"""\n')
-    elif interface.doc:
-        code_lines.append(f'    """{interface.doc}"""\n')
+
+    if interface.doc:
+        code_lines.append(f'    """\n\t{interface.doc}\n\t"""\n')
+
     if interface.constructor:
         code_lines.append(_generate_constructor_code(interface.constructor))
         code_lines.append('')
 
-    if interface.attributes and not interface.constructor:
-        for attr in interface.attributes:
-            code_lines.append(f'    {attr.name}: {attr.type} = None')
+    if not interface.constructor and interface.attributes:
+        for attribute in interface.attributes:
+            code_lines.append(_generate_attribute_code(attribute))
         code_lines.append('')
+
+    # Генерация свойств
+    if interface.properties:
+        code_lines.extend(_generate_properties_code(interface.properties))
+        code_lines.append('')
+
     for method in interface.methods:
         code_lines.append(_generate_method_code(method))
         code_lines.append('')
-    return '\n'.join(code_lines).strip()
+
+    return '\n'.join(code_lines)
+
 
 def _generate_constructor_code(constructor: Method) -> str:
-    params = ['self'] + [f'{name}: {type_}' if type_ else name for name, type_, _ in constructor.params]
-    code = f'    def __init__({", ".join(params)}):\n'
+    """Генерирует код конструктора."""
+    params_str = 'self'
+    for name, type_, default in constructor.params:
+        param_decl = name
+        if type_:
+            param_decl += f': {type_}'
+        if default:
+            param_decl += f' = {default}'
+        params_str += ', ' + param_decl
+
+    code = f'    def {constructor.name}({params_str}):\n'
+
     if constructor.doc:
-        code += f'        """\n{_format_docstring(constructor.doc)}\n        """\n'
+        code += f'        """\t\t{constructor.doc}\t\t"""\n'
+
     for name, _, _ in constructor.params:
-        code += f'        self._{name} = {name}\n'
+        code += f'        self.__{name} = {name}\n'
     return code
+
+
+def _generate_attribute_code(attribute: Attribute) -> str:
+    """
+    Генерирует код атрибута.
+    """
+    return f'    {attribute.name}: {attribute.type} = None'
+
+
+def _generate_properties_code(properties: List[Property]) -> List[str]:
+    """
+    Генерирует код для свойств Python, включая геттеры и сеттеры.
+    """
+    code_lines = []
+    property_groups = {}
+
+    # Группируем свойства по имени (геттеры и сеттеры вместе)
+    for prop in properties:
+        if prop.name not in property_groups:
+            property_groups[prop.name] = {'getter': None, 'setter': None}
+        if prop.is_setter:
+            property_groups[prop.name]['setter'] = prop
+        else:
+            property_groups[prop.name]['getter'] = prop
+
+    for prop_name, prop_group in property_groups.items():
+        getter = prop_group['getter']
+        setter = prop_group['setter']
+
+        # Генерация геттера
+        if getter:
+            code_lines.append(f'    @property')
+            code_lines.append(f'    def {prop_name}(self) -> {getter.return_type}:')
+            if getter.doc:
+                code_lines.append(f'        """{getter.doc}"""')
+            code_lines.append(f'        return self.__{prop_name}')
+            code_lines.append('')
+
+        # Генерация сеттера
+        if setter:
+            code_lines.append(f'    @{prop_name}.setter')
+            code_lines.append(f'    def {prop_name}(self, value: {setter.return_type}):')
+            if setter.doc:
+                code_lines.append(f'        """{setter.doc}"""')
+            code_lines.append(f'        self.__{prop_name} = value')
+            code_lines.append('')
+
+    return code_lines
+
 
 def _generate_method_code(method: Method) -> str:
-    params = ['self'] + [f'{name}: {type_}' if type_ else name for name, type_, _ in method.params]
+    """
+    Генерирует код метода (заглушку).
+    """
+    params_str = 'self'
+    for name, type_param, default in method.params:
+        param_decl = name
+        if type_param:
+            param_decl += f': {type_param}'
+        if default:
+            param_decl += f' = {default}'
+        params_str += ', ' + param_decl
+
     return_type = f' -> {method.return_type}' if method.return_type else ''
-    code = f'    def {method.name}({", ".join(params)}){return_type}:\n'
+    code = f'    def {method.name}({params_str}){return_type}:\n'
+
     if method.doc:
-        code += f'        """\n{_format_docstring(method.doc)}\n        """\n'
-    code += '        raise NotImplementedError()'
+        code += f'        """{method.doc}\t\t"""\n'
+
+    code += '        raise NotImplementedError()\n'
     return code
 
-def _format_docstring(docstring: str) -> str:
-    if not docstring:
-        return ""
-    lines = docstring.split('\n')
-    formatted_lines = []
-    for line in lines:
-        stripped = line.strip()
-        if stripped.startswith('**'):
-            formatted_lines.append(f'        {stripped}')
-        elif ':' in stripped and not stripped.startswith('**'):
-            formatted_lines.append(f'            {stripped}')
-        else:
-            formatted_lines.append(f'        {stripped}')
-    return '\n'.join(formatted_lines)
 
-def generate_python_classes(interfaces: Dict[str, str], method_docs: Dict[str, str]) -> str:
+def generate_python_classes(interfaces: Dict[str, str]) -> str:
+    """
+    Генерирует код классов Python для всех интерфейсов.
+
+    Args:
+        interfaces: Словарь с интерфейсами.
+
+    Returns:
+        Строка с кодом классов.
+    """
     parsed_interfaces = []
     for name, content in interfaces.items():
-        interface = Interface(
-            name=name,
-            doc=_parse_docstring(content),
-            constructor=_parse_constructor(content),
-            attributes=_parse_attributes(content),
-            methods=_parse_methods(content)
-        )
-        for method in interface.methods:
-            if method.name in method_docs:
-                method.doc = f'{method.doc}\n\n{method_docs[method.name]}' if method.doc else method_docs[method.name]
-        if interface.constructor and interface.constructor.name in method_docs:
-            interface.constructor.doc = f'{interface.constructor.doc}\n\n{method_docs[interface.constructor.name]}'\
-                if interface.constructor.doc else method_docs[interface.constructor.name]
-        parsed_interfaces.append(interface)
-    return '\n\n'.join(generate_class_code(interface, method_docs.get('__class__')) for interface in parsed_interfaces)
+        parsed_interface = parse_interface_content(content)
+        parsed_interface.name = name
+        parsed_interfaces.append(parsed_interface)
+
+    return '\n\n'.join(
+        generate_class_code(interface) for interface in parsed_interfaces
+    )
+
 
 def save_python_classes_to_file(filename: str, class_code: str) -> None:
-    with open(filename, 'w', encoding='utf-8') as f:
-        f.write(class_code)
+    """
+    Сохраняет сгенерированный код классов в файл.
+
+    Args:
+        filename: Имя файла.
+        class_code: Код классов.
+    """
+    with open(filename, 'w', encoding='utf-8') as file:
+        file.write(class_code)
+
 
 if __name__ == "__main__":
     with open('uml_class_for_test.puml', 'r', encoding='utf-8') as f:
         uml_content = f.read()
-    with open('index.md', 'r', encoding='utf-8') as f:
-        md_content = f.read()
-    method_docs = parse_md_docs(md_content)
+
     interfaces = extract_all_interfaces(uml_content)
-    generated_code = generate_python_classes(interfaces, method_docs)
-    save_python_classes_to_file('generated_classes_from_test1.py', generated_code)
+    generated_code = generate_python_classes(interfaces)
+    save_python_classes_to_file('generated_classes.py', generated_code)
+    print(generated_code)

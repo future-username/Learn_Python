@@ -14,6 +14,16 @@ interface _SwitchCases {
     """
     .. Attributes ..
     -__line: str
+
+    .. Properties ..
+    + getLine(): -> str
+    """
+    Return line: исходная строка
+    """
+    + setLine(value: str):
+    """
+    Receive current line
+    """
     .. Methods ..
     +upper() -> str:
     """
@@ -26,3 +36,4 @@ interface _SwitchCases {
     +title() -> str:
 }
 @enduml
+
