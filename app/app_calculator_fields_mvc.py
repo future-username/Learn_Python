@@ -168,7 +168,7 @@ class Controller:
 class App(Tk):
     def __init__(self):
         super().__init__()
-        with open("app_calculator_filds.json", "r") as read_file:
+        with open(r"C:\Users\Paul\PycharmProjects\Learn_Python\app\app_calculator_filds.json", "r", encoding='UTF-8') as read_file:
             data = json.load(read_file)
 
         self.title(data['TITLE'])

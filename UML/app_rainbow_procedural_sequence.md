@@ -9,6 +9,9 @@ sequenceDiagram
     participant Buttons as Color Buttons
     participant Label as Color Name Label
     participant Entry as Color Code Entry
+
+    User->>App: Запуск приложения
+    activate App
     
     Note over App: Инициализация приложения
     App->>App: Создание root = Tk()
@@ -30,6 +33,7 @@ sequenceDiagram
     Buttons->>App: Размещение всех кнопок с помощью pack(fill=X)
     
     App->>App: root.mainloop()
+    deactivate App
     
     Note over User, App: Взаимодействие с приложением
     

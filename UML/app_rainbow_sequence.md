@@ -1,5 +1,47 @@
 # Диаграмма последовательностей для приложения Rainbow
 
+```mermaid
+sequenceDiagram
+    participant User
+    participant App
+    participant Model
+    participant View
+    participant Controller
+    participant ButtonColor
+
+    %% Инициализация приложения
+    User->>App: Запуск приложения
+    App->>Model: __init__(colors)
+    App->>View: __init__(root, 'Colors')
+    App->>Controller: __init__(model, view)
+    Controller->>View: create_buttons(model.colors_data)
+    activate View
+    View->>Label: create()
+    View->>Entry: create()
+    loop для каждого цвета
+        View->>ButtonColor: __init__(parent, label, entry, color_code, color_name)
+        View->>ButtonColor: config(command=lambda)
+    end
+    deactivate View
+    App->>Tk: mainloop()
+
+    %% Обработка нажатия кнопки
+    User->>ButtonColor: click()
+    ButtonColor->>View: lambda -> __set_color(button)
+    activate View
+    View->>Controller: print_color(button)
+    activate Controller
+    Controller->>ButtonColor: show_color()
+    activate ButtonColor
+    ButtonColor->>Label: config()
+    ButtonColor->>Entry: delete()
+    ButtonColor->>Entry: insert()
+    ButtonColor->>Entry: config()
+    deactivate ButtonColor
+    deactivate Controller
+    deactivate View
+```
+
 Ниже представлена диаграмма последовательностей, отображающая взаимодействие между компонентами приложения Rainbow (app_rainbow.py).
 
 ```mermaid
