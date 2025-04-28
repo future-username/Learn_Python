@@ -188,120 +188,195 @@ colors = {
 
 
 class Errors:
+    """Класс для обработки ошибок типов данных."""
     @staticmethod
     def type_error(value, type_value):
-        raise TypeError(f'{value} this is not {type_value}')
+        """Вызывает TypeError, если тип значения не соответствует ожидаемому.
+    
+        Args:
+            value: Значение для проверки.
+            type_value: Ожидаемый тип.
+    
+        Raises:
+            TypeError: Если тип value не совпадает с type_value.
+        """
+        if not isinstance(value, type_value):
+            raise TypeError(f'Значение {value} должно быть типа {type_value}')
 
 
 class Model:
-    def __init__(self, colors_data):
-        self.colors_data = colors_data
+    """Модель данных приложения. Хранит словарь цветов."""
+    def __init__(self, colors_data: dict):
+        """Инициализирует модель.
+    
+        Args:
+            colors_data (dict): Словарь с данными цветов (имя: код).
+    
+        Raises:
+            TypeError: Если colors_data не является словарем.
+        """
+        Errors.type_error(colors_data, dict)
+        self.__colors_data = colors_data
 
     @property
     def colors_data(self):
+        """Возвращает словарь цветов."""
         return self.__colors_data
-
-    @colors_data.setter
-    def colors_data(self, value):
-        if isinstance(value, dict):
-            self.__colors_data = value
-        else:
-            raise TypeError(f'{value} this is not dict')
 
 
 class ButtonColor(Button):
-    def __init__(self, parent: Tk, label: Label, entry: Entry, color_code: str, color_name: str, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
-        self.__label = label if isinstance(label, Label) else Errors.type_error(label, Label)
-        self.__entry = entry if isinstance(entry, Entry) else Errors.type_error(entry, Entry)
-        self.__color_name = color_name if isinstance(color_name, str) else Errors.type_error(color_name, str)
+    """Класс кнопки, отображающей информацию о цвете."""
+    def __init__(self, parent: Tk, label: Label, entry: Entry, color_code: str, color_name: str):
+        """Инициализирует кнопку цвета.
+    
+        Args:
+            parent (Tk): Родительский виджет.
+            label (Label): Метка для отображения имени цвета.
+            entry (Entry): Поле для отображения кода цвета.
+            color_code (str): Код цвета.
+            color_name (str): Имя цвета.
+    
+        Raises:
+            TypeError: Если типы аргументов не соответствуют ожидаемым.
+        """
+        Errors.type_error(parent, Tk)
+        Errors.type_error(label, Label)
+        Errors.type_error(entry, Entry)
+        Errors.type_error(color_code, str)
+        Errors.type_error(color_name, str)
 
-        if (isinstance(color_code, str) and color_code.startswith('#') and len(color_code) == 7
-                and color_code[1:].isalnum()):
-            self.color_code = color_code
-        else:
-            raise TypeError(f'{color_code} this is not {color_code}')
+        super().__init__(parent, text=color_name, bg=color_code)
+        self.__label = label
+        self.__entry = entry
+        self.__color_name = color_name
+        self.color_code = color_code
 
-        self.config(text=self.__color_name, fg=self.__color_name)
-
-    def show_color(self) -> None:
-        self.__label.config(text=self.__color_name, fg=self.__color_name)
+    def show_color(self):
+        """Отображает имя и код цвета в соответствующих виджетах."""
+        self.__label.config(text=self.__color_name)
         self.__entry.delete(0, END)
         self.__entry.insert(0, self.color_code)
-        self.__entry.config(bg=self.__color_name)
+        self.__entry.config(bg=self.color_code)
 
 
 class Controller:
-    def __init__(self, model, view):
+    """Контроллер приложения. Связывает модель и представление."""
+    def __init__(self, model: Model, view: View):
+        """Инициализирует контроллер.
+    
+        Args:
+            model (Model): Экземпляр модели.
+            view (View): Экземпляр представления.
+    
+        Raises:
+            TypeError: Если типы аргументов не соответствуют ожидаемым.
+        """
+        Errors.type_error(model, Model)
+        Errors.type_error(view, View)
         self.__model = model
         self.__view = view
+        self.__view.set_controller(self)
         self.__view.create_buttons(self.__model.colors_data)
 
     @staticmethod
     def print_color(button: ButtonColor):
+        """Обрабатывает нажатие кнопки цвета.
+    
+        Args:
+            button (ButtonColor): Нажатая кнопка.
+    
+        Raises:
+            TypeError: Если button не является экземпляром ButtonColor.
         """
-        print_color
-        :return:
-        """
-        try:
-            button.show_color()
-        except ValueError as error:
-            print(error)
+        Errors.type_error(button, ButtonColor)
+        button.show_color()
 
 
 class View:
+    """Представление приложения. Отвечает за пользовательский интерфейс."""
     def __init__(self, parent: Tk, label_name: str):
-        self.__label_name = label_name if isinstance(label_name, str) else Errors.type_error(label_name, str)
-        self.__parent = parent if isinstance(parent, Tk) else Errors.type_error(parent, Tk)
+        """Инициализирует представление.
+    
+        Args:
+            parent (Tk): Родительский виджет (главное окно).
+            label_name (str): Текст для метки имени цвета.
+    
+        Raises:
+            TypeError: Если типы аргументов не соответствуют ожидаемым.
+        """
+        Errors.type_error(parent, Tk)
+        Errors.type_error(label_name, str)
+        self.__parent = parent
+        self.__label_name = label_name
         self.__controller = None
 
-    def create_buttons(self, dict_colors):
-        label_color = Label(text=self.__label_name)
-        label_color.pack()
-        entry_color = Entry(justify=CENTER)
-        entry_color.insert(0, "Color code")
-        entry_color.pack()
+        self.__label = Label(self.__parent, text=self.__label_name)
+        self.__label.pack()
+        self.__entry = Entry(self.__parent, justify=CENTER)
+        self.__entry.insert(0, "Color code")
+        self.__entry.pack()
 
+    def create_buttons(self, dict_colors: dict):
+        """Создает кнопки для каждого цвета.
+    
+        Args:
+            dict_colors (dict): Словарь цветов (имя: код).
+    
+        Raises:
+            TypeError: Если dict_colors не является словарем.
+        """
+        Errors.type_error(dict_colors, dict)
         for color_name, color_code in dict_colors.items():
-            button_color = ButtonColor(self.__parent, label_color, entry_color, color_code, color_name)
-            button_color.config(command=lambda b=button_color: self.__set_color(b))
-            button_color.pack(fill=X)
+            button = ButtonColor(self.__parent, self.__label, self.__entry, color_code, color_name)
+            button.config(command=lambda b=button: self.__set_color(b))
+            button.pack(fill=X)
 
-    def set_controller(self, controller):
+    def set_controller(self, controller: Controller):
+        """Устанавливает контроллер для представления.
+    
+        Args:
+            controller (Controller): Экземпляр контроллера.
+    
+        Raises:
+            TypeError: Если controller не является экземпляром Controller.
         """
-        Set the controller
-        :param controller:
-        :return:
-        """
+        Errors.type_error(controller, Controller)
         self.__controller = controller
 
     def __set_color(self, button: ButtonColor):
+        """Вызывает метод контроллера для обработки нажатия кнопки.
+    
+        Args:
+            button (ButtonColor): Нажатая кнопка.
+    
+        Raises:
+            TypeError: Если button не является экземпляром ButtonColor.
         """
-        Handle button click event
-        :return:
-        """
+        Errors.type_error(button, ButtonColor)
         if self.__controller:
             self.__controller.print_color(button)
 
 
 class App:
-    def __init__(self):
-        super().__init__()
+    """Главный класс приложения."""
+    def __init__(self, colors_data: dict):
+        """Инициализирует приложение.
+    
+        Args:
+            colors_data (dict): Словарь с данными цветов.
+    
+        Raises:
+            TypeError: Если colors_data не является словарем.
+        """
+        Errors.type_error(colors_data, dict)
         self.__root = Tk()
         self.__root.title('Colors')
+        self.__model = Model(colors_data)
+        self.__view = View(self.__root, 'Color name')
+        self.__controller = Controller(self.__model, self.__view)
 
-        model = Model(colors)
-
-        # create a view and place it on the root window
-        view = View(self.__root, label_name='Colors')
-
-        # create a controller
-        controller = Controller(model, view)
-
-        # set the controller to view
-        view.set_controller(controller)
-
-    def mainloop(self):
+    def run(self):
+        """Запускает главный цикл приложения Tkinter."""
         self.__root.mainloop()
 
 
