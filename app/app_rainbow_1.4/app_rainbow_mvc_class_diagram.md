@@ -46,20 +46,21 @@ classDiagram
         +update_color_display(color_hex, color_name)
         +update_figure_display(figure_name)
         +set_drawing_color(color_hex)
-        +set_active_figure(figure_name)
+        +draw_shape_on_canvas(coordinates)  // Новый метод
         +mainloop()
     }
 
     class Canvas {
         <<tk.Canvas>>
         +drawing_color: str
-        +active_figure: str
         -start_x: int
         -start_y: int
+        -last_x: int
+        -last_y: int
         +controller: Controller
         +__init__(master, **kwargs)
         +set_drawing_color(color_hex)
-        +set_active_figure(figure_name)
+        +draw_shape(coordinates)  // Новый метод
         -on_press(event)
         -on_drag(event)
         -on_release(event)
@@ -71,6 +72,7 @@ classDiagram
         +__init__(model, view)
         +handle_color_button_click(color_hex, color_name)
         +handle_figure_button_click(figure_name)
+        +handle_draw_shape_request(coordinates) // Новый метод
     }
 
     class App {

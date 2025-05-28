@@ -77,10 +77,10 @@ class ICanvas(ABC):
     def set_drawing_color(self, color_hex: str):
         """Установить цвет рисования"""
         pass
-    
+
     @abstractmethod
-    def set_active_figure(self, figure_name: str):
-        """Установить активную фигуру для рисования"""
+    def draw_shape(self, coordinates: tuple[tuple[int, int]]):
+        """Нарисовать фигуру по координатам методом полилиний"""
         pass
 
 
@@ -123,10 +123,10 @@ class IView(ABC):
         pass
     
     @abstractmethod
-    def set_active_figure(self, figure_name: str):
-        """Установить активную фигуру на холсте"""
+    def draw_shape_on_canvas(self, coordinates: Tuple):
+        """Нарисовать фигуру на холсте по координатам"""
         pass
-    
+
     @abstractmethod
     def mainloop(self):
         """Запустить главный цикл интерфейса"""
@@ -149,6 +149,11 @@ class IController(ABC):
     @abstractmethod
     def handle_figure_button_click(self, figure_name: str):
         """Обработать нажатие кнопки фигуры"""
+        pass
+
+    @abstractmethod
+    def handle_draw_shape_request(self, coordinates: Tuple):
+        """Обработать запрос на рисование фигуры по координатам"""
         pass
 
 

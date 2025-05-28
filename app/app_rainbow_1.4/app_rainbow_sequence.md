@@ -93,3 +93,17 @@ sequenceDiagram
     Canvas->>Canvas: self.last_x, self.last_y = None, None
     Canvas-->>User: позиция сброшена
     deactivate Canvas
+
+    %% Рисование фигуры по координатам
+    User->>Controller: Запрос на рисование фигуры (координаты)
+    activate Controller
+    Controller->>View: draw_shape_on_canvas(coordinates)
+    activate View
+    View->>Canvas: draw_shape(coordinates)
+    activate Canvas
+    Canvas->>Canvas: Рендеринг фигуры по координатам (например, create_polygon, create_oval и т.д.)
+    Canvas-->>View: Фигура нарисована
+    deactivate Canvas
+    View-->>Controller: Подтверждение рисования
+    deactivate View
+    deactivate Controller
