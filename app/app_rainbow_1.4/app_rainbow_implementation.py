@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import colorchooser, messagebox
 from typing import Dict, Tuple, Any, Optional, Callable, cast
+import math # Добавлен импорт math
 
 # Предполагается, что файл app_rainbow_mvc_interfaces.py находится в том же каталоге
 # или доступен через PYTHONPATH.
@@ -9,7 +10,6 @@ from app_rainbow_mvc_interfaces import (
     IModel, IButtonColor, IButtonFigures, ICanvas,
     IView, IController, IApp, IEventHandler
 )
-
 # --- Constants ---
 DEFAULT_WINDOW_TITLE = "Rainbow MVC App"
 DEFAULT_WINDOW_GEOMETRY = "800x600"
@@ -35,13 +35,15 @@ DEFAULT_FIGURES: Dict[str, Any] = {
     "Линия": (),
     "Прямоугольник": (),
     "Овал": (),
-    "Елочка": ()  # Добавляем новую фигуру
+    "Елочка": (),  # Добавляем новую фигуру
+    "Звезда": ()  # Добавляем звезду
 }
 
 FIGURE_LINE = "Линия"
 FIGURE_RECTANGLE = "Прямоугольник"
 FIGURE_OVAL = "Овал"
 FIGURE_TREE = "Елочка" # Новая константа для елочки
+FIGURE_STAR = "Звезда" # Новая константа для звезды
 
 # --- Utility Functions ---
 def get_text_color_for_bg(hex_color: str) -> str:
@@ -131,6 +133,62 @@ class Canvas(tk.Canvas, ICanvas, IEventHandler):
         self.bind("<B1-Motion>", self.on_drag)
         self.bind("<ButtonRelease-1>", self.on_release)
 
+    def _get_oval_points(self, x1: int, y1: int, x2: int, y2: int, segments: int = 36) -> list[float]:
+        """Генерирует координаты точек для полигона, аппроксимирующего овал."""
+        points = []
+        # Нормализуем координаты
+        rx1, ry1 = min(x1, x2), min(y1, y2)
+        rx2, ry2 = max(x1, x2), max(y1, y2)
+
+        center_x = (rx1 + rx2) / 2
+        center_y = (ry1 + ry2) / 2
+        radius_x = (rx2 - rx1) / 2
+        radius_y = (ry2 - ry1) / 2
+
+        if radius_x == 0 and radius_y == 0: # Точка
+            return [rx1, ry1, rx1+1, ry1, rx1+1, ry1+1, rx1, ry1+1, rx1, ry1] # Маленький квадрат для точки
+        if radius_x == 0 or radius_y == 0: # Линия (вертикальная или горизонтальная)
+            # Возвращаем прямоугольник, который будет выглядеть как линия при width > 0
+            return [rx1, ry1, rx2, ry1, rx2, ry2, rx1, ry2, rx1, ry1]
+
+        for i in range(segments):
+            angle = (2 * math.pi / segments) * i
+            x = center_x + radius_x * math.cos(angle)
+            y = center_y + radius_y * math.sin(angle)
+            points.extend([x, y])
+        # Замыкаем полигон, добавляя первую точку в конец, если она еще не там
+        if points and (points[0] != points[-2] or points[1] != points[-1]):
+             points.extend([points[0], points[1]])
+        return points
+
+    def _get_star_points(self, x1: int, y1: int, x2: int, y2: int, num_points: int = 100) -> list[float]:
+        """Генерирует координаты точек для звезды."""
+        points = []
+        min_x, max_x = min(x1, x2), max(x1, x2)
+        min_y, max_y = min(y1, y2), max(y1, y2)
+
+        center_x = (min_x + max_x) / 2
+        center_y = (min_y + max_y) / 2
+        
+        # Определяем внешний радиус как половину меньшей из сторон ограничивающего прямоугольника
+        outer_radius = min(max_x - min_x, max_y - min_y) / 2
+        if outer_radius == 0: # Если радиус 0, рисуем маленькую точку/квадрат
+            return [center_x, center_y, center_x+1, center_y, center_x+1, center_y+1, center_x, center_y+1, center_x, center_y]
+            
+        inner_radius = outer_radius / 2.5 # Внутренний радиус для звезды
+
+        for i in range(num_points * 2):
+            angle = (math.pi / num_points) * i - (math.pi / 2) # Начинаем с верхней точки
+            radius = outer_radius if i % 2 == 0 else inner_radius
+            x = center_x + radius * math.cos(angle)
+            y = center_y + radius * math.sin(angle)
+            points.extend([x, y])
+        
+        # Замыкаем полигон
+        if points:
+            points.extend([points[0], points[1]])
+        return points
+
     def set_drawing_color(self, color_hex: str):
         self.drawing_color = color_hex
 
@@ -140,135 +198,265 @@ class Canvas(tk.Canvas, ICanvas, IEventHandler):
     def on_press(self, event: tk.Event):
         self._start_x = event.x
         self._start_y = event.y
-        # Для линий начинаем рисовать сразу (как временную)
+        # Для линий начинаем рисовать сразу (как временную линию)
         if self.active_figure == FIGURE_LINE:
             self._current_shape_id = self.create_line(
-                self._start_x, self._start_y, event.x, event.y, 
-                fill=self.drawing_color, width=2, tags="temp_shape"
+                self._start_x, self._start_y, event.x, event.y,
+                fill=self.drawing_color,
+                width=2,
+                tags="temp_shape" # Тег для временной фигуры
             )
 
     def on_drag(self, event: tk.Event):
         if self._start_x is None or self._start_y is None:
             return
 
-        if self._current_shape_id: # Удаляем предыдущую временную фигуру
+        if self._current_shape_id:
             self.delete(self._current_shape_id)
             self._current_shape_id = None
 
-        if self.active_figure == FIGURE_LINE:
+        temp_shape_params = {
+            'tags': "temp_shape", # Тег для временной фигуры
+            'width': 2,
+            'fill': self.drawing_color  # Для линий используем fill вместо outline
+        }
+        
+        active_fig = self.active_figure 
+
+        coords: list[float] = []
+        specific_params = {}
+
+        # Координаты для полилиний различных фигур
+        if active_fig == FIGURE_LINE:
+            # Для линии просто передаем начальную и конечную точки
             self._current_shape_id = self.create_line(
                 self._start_x, self._start_y, event.x, event.y, 
-                fill=self.drawing_color, width=2, tags="temp_shape"
+                **temp_shape_params
             )
-        elif self.active_figure == FIGURE_RECTANGLE:
-            self._current_shape_id = self.create_rectangle(
-                self._start_x, self._start_y, event.x, event.y, 
-                outline=self.drawing_color, width=2, tags="temp_shape"
-            )
-        elif self.active_figure == FIGURE_OVAL:
-            self._current_shape_id = self.create_oval(
-                self._start_x, self._start_y, event.x, event.y, 
-                outline=self.drawing_color, width=2, tags="temp_shape"
-            )
-        elif self.active_figure == FIGURE_TREE:
-            # Временное отображение елочки - можно просто рамку или упрощенную форму
-            # Для простоты пока оставим как прямоугольник, но потом можно улучшить
-            self._current_shape_id = self.create_rectangle(
-                 self._start_x, self._start_y, event.x, event.y,
-                 outline=self.drawing_color, dash=(4, 2), tags="temp_shape"
-            )
+            return
+        elif active_fig == FIGURE_RECTANGLE:
+            # Прямоугольник - это 4 линии
+            coords = [
+                self._start_x, self._start_y, event.x, self._start_y,
+                event.x, self._start_y, event.x, event.y,
+                event.x, event.y, self._start_x, event.y,
+                self._start_x, event.y, self._start_x, self._start_y
+            ]
+        elif active_fig == FIGURE_OVAL:
+            # Овал аппроксимируется полилинией
+            points = self._get_oval_points(self._start_x, self._start_y, event.x, event.y)
+            # Преобразуем список [x1, y1, x2, y2, ...] в формат для create_line
+            coords = []
+            for i in range(0, len(points)-2, 2):
+                coords.extend([points[i], points[i+1], points[i+2], points[i+3]])
+            # Добавляем соединение последней точки с первой
+            if len(points) >= 4:
+                coords.extend([points[-2], points[-1], points[0], points[1]])
+        elif active_fig == FIGURE_TREE:
+            # Для елочки во время перетаскивания рисуем ограничивающий прямоугольник
+            coords = [
+                self._start_x, self._start_y, event.x, self._start_y,
+                event.x, self._start_y, event.x, event.y,
+                event.x, event.y, self._start_x, event.y,
+                self._start_x, event.y, self._start_x, self._start_y
+            ]
+        elif active_fig == FIGURE_STAR:
+            # Для звезды во время перетаскивания рисуем ограничивающий прямоугольник
+            # или можно использовать self._get_star_points для более точного временного отображения
+            coords = [
+                self._start_x, self._start_y, event.x, self._start_y,
+                event.x, self._start_y, event.x, event.y,
+                event.x, event.y, self._start_x, event.y,
+                self._start_x, event.y, self._start_x, self._start_y
+            ]
+            # Альтернатива для временного отображения звезды:
+            # star_points_temp = self._get_star_points(self._start_x, self._start_y, event.x, event.y)
+            # if star_points_temp:
+            #     for i in range(0, len(star_points_temp)-2, 2):
+            #         coords.extend([star_points_temp[i], star_points_temp[i+1], star_points_temp[i+2], star_points_temp[i+3]])
+        else:
+            return
+
+        if not coords:
+            return
+            
+        # Все временные фигуры при перетаскивании рисуются как полилинии
+        self._current_shape_id = self.create_line(coords, **temp_shape_params, **specific_params)
 
     def on_release(self, event: tk.Event):
-        if self._current_shape_id: # Удаляем временную фигуру
+        """Handle mouse button release event to finalize drawing."""
+        if self._start_x is None or self._start_y is None:
+            return
+            
+        # Delete the temporary shape
+        if self._current_shape_id:
             self.delete(self._current_shape_id)
             self._current_shape_id = None
-
-        if self._start_x is not None and self._start_y is not None and self.controller:
-            end_x, end_y = event.x, event.y
-            # Игнорируем клик без перемещения для фигур, кроме, возможно, точки
-            if self._start_x == end_x and self._start_y == end_y and self.active_figure != "Точка":
-                self._start_x, self._start_y = None, None
-                return
-
-            coordinates = ((self._start_x, self._start_y), (end_x, end_y))
-            self.controller.handle_draw_shape_request(coordinates, self.active_figure)
-        
+            
+        # Notify controller to draw the final shape
+        if self.controller:
+            self.controller.handle_draw_shape_request(
+                ((self._start_x, self._start_y), (event.x, event.y)),
+                self.active_figure
+            )
+            
+        # Reset starting coordinates
         self._start_x = None
         self._start_y = None
 
     def draw_shape(self, coordinates: Tuple[Tuple[int, int], Tuple[int, int]], figure_type: str):
         (x1, y1), (x2, y2) = coordinates
         fill_color = ""
-        # Для елочки заливка может быть применена к стволу или частям кроны
-        ask_fill = figure_type not in [FIGURE_LINE]
+        ask_fill = figure_type != FIGURE_LINE
         
         if ask_fill:
             if messagebox.askyesno("Заливка фигуры", f"Залить {figure_type.lower()} выбранным цветом?", parent=self):
                 fill_color = self.drawing_color
 
+        # Все фигуры рисуются как полилинии (последовательности соединенных отрезков)
+        # с использованием метода create_line. Тег "shape" добавляется ко всем финальным фигурам.
+
         if figure_type == FIGURE_LINE:
-            self.create_line(x1, y1, x2, y2, fill=self.drawing_color, width=2)
+            # Линия - это полилиния из двух точек (один сегмент).
+            self.create_line(x1, y1, x2, y2, fill=self.drawing_color, width=2, tags="shape")
         elif figure_type == FIGURE_RECTANGLE:
-            self.create_rectangle(x1, y1, x2, y2, outline=self.drawing_color, fill=fill_color, width=2)
+            # Прямоугольник - это замкнутая полилиния из четырех сегментов.
+            self.create_line(
+                x1, y1, x2, y1, x2, y2, x1, y2, x1, y1,
+                fill=self.drawing_color, width=2, tags="shape"
+            )
+            # Если нужна заливка, создаем дополнительный прямоугольник
+            if fill_color:
+                self.create_rectangle(x1, y1, x2, y2, outline="", fill=fill_color, tags="shape_fill")
         elif figure_type == FIGURE_OVAL:
-            self.create_oval(x1, y1, x2, y2, outline=self.drawing_color, fill=fill_color, width=2)
+            # Овал аппроксимируется полилинией.
+            oval_coords = self._get_oval_points(x1, y1, x2, y2)
+            if oval_coords:
+                # Преобразуем список [x1, y1, x2, y2, ...] в формат для create_line
+                line_coords = []
+                for i in range(0, len(oval_coords)-2, 2):
+                    line_coords.extend([oval_coords[i], oval_coords[i+1], oval_coords[i+2], oval_coords[i+3]])
+                # Добавляем соединение последней точки с первой
+                if len(oval_coords) >= 4:
+                    line_coords.extend([oval_coords[-2], oval_coords[-1], oval_coords[0], oval_coords[1]])
+                
+                self.create_line(line_coords, fill=self.drawing_color, width=2, tags="shape")
+                # Если нужна заливка, создаем дополнительный овал
+                if fill_color:
+                    min_x, min_y = min(x1, x2), min(y1, y2)
+                    max_x, max_y = max(x1, x2), max(y1, y2)
+                    self.create_oval(min_x, min_y, max_x, max_y, outline="", fill=fill_color, tags="shape_fill")
         elif figure_type == FIGURE_TREE:
+            # Елочка состоит из нескольких полилиний (ствол, сегменты кроны).
             self._draw_christmas_tree(x1, y1, x2, y2, self.drawing_color, fill_color)
-        # elif figure_type == "Полилиния":
-        #    self.create_polygon(coordinates_tuple, outline=self.drawing_color, fill=fill_color, width=2)
+        elif figure_type == FIGURE_STAR:
+            star_points = self._get_star_points(x1, y1, x2, y2)
+            if star_points:
+                # Рисуем контур звезды как полилинию
+                line_coords_star = []
+                for i in range(0, len(star_points)-2, 2):
+                    line_coords_star.extend([star_points[i], star_points[i+1], star_points[i+2], star_points[i+3]])
+                # Замыкаем контур, если он не замкнут (хотя _get_star_points уже должен это делать)
+                if len(star_points) >=4 and (star_points[0] != star_points[-2] or star_points[1] != star_points[-1]):
+                     line_coords_star.extend([star_points[-2], star_points[-1], star_points[0], star_points[1]])
+                
+                self.create_line(line_coords_star, fill=self.drawing_color, width=2, tags="shape star_outline")
+                
+                # Если нужна заливка, создаем дополнительный полигон
+                if fill_color:
+                    # self._get_star_points возвращает уже замкнутый список точек для полигона
+                    self.create_polygon(star_points, outline="", fill=fill_color, tags="shape star_fill")
 
     def _draw_christmas_tree(self, x1: int, y1: int, x2: int, y2: int, outline_color: str, fill_color: str):
-        """Рисует елочку на холсте."""
-        # Определяем базовые размеры и положение елочки
-        # Елочка будет вписана в прямоугольник (x1,y1) - (x2,y2)
-        # Нормализуем координаты, чтобы x1 < x2 и y1 < y2
+        """Рисует елочку на холсте, используя полилинии для каждого компонента."""
         min_x, max_x = min(x1, x2), max(x1, x2)
         min_y, max_y = min(y1, y2), max(y1, y2)
 
         width = max_x - min_x
         height = max_y - min_y
 
-        if width == 0 or height == 0: return # Нечего рисовать
+        if width == 0 or height == 0: return
 
-        # Ствол (коричневый по умолчанию, если не выбран другой цвет для заливки)
         trunk_width = width / 5
         trunk_height = height / 4
         trunk_x1 = min_x + (width - trunk_width) / 2
         trunk_y1 = max_y - trunk_height
         trunk_x2 = trunk_x1 + trunk_width
         trunk_y2 = max_y
-        # Если есть fill_color, используем его для ствола, иначе - коричневый
-        actual_trunk_fill = fill_color if fill_color else "#A0522D" # SaddleBrown
-        self.create_rectangle(trunk_x1, trunk_y1, trunk_x2, trunk_y2, 
-                                outline=outline_color, fill=actual_trunk_fill, width=2)
+        actual_trunk_fill = fill_color if fill_color else "#A0522D" # Коричневый по умолчанию для ствола
+        
+        # Ствол - прямоугольная полилиния
+        self.create_line(
+            trunk_x1, trunk_y1, trunk_x2, trunk_y1, 
+            trunk_x2, trunk_y1, trunk_x2, trunk_y2,
+            trunk_x2, trunk_y2, trunk_x1, trunk_y2,
+            trunk_x1, trunk_y2, trunk_x1, trunk_y1,
+            fill=outline_color, width=2, tags="shape_component tree_trunk"
+        )
+        # Заливка ствола, если нужна
+        if actual_trunk_fill:
+            self.create_rectangle(
+                trunk_x1, trunk_y1, trunk_x2, trunk_y2, 
+                outline="", fill=actual_trunk_fill, tags="shape_component tree_trunk_fill"
+            )
 
-        # Крона (три треугольника)
         crown_base_y = trunk_y1
         crown_segment_height = (crown_base_y - min_y) / 3
 
-        # Нижний ярус кроны
-        poly1_coords = [
-            min_x, crown_base_y, 
-            max_x, crown_base_y,
-            min_x + width / 2, crown_base_y - crown_segment_height
-        ]
-        self.create_polygon(poly1_coords, outline=outline_color, fill=fill_color if fill_color else "", width=2)
+        if crown_segment_height <= 0: return
 
-        # Средний ярус кроны
-        poly2_coords = [
-            min_x + width / 6, crown_base_y - crown_segment_height * 0.8, # Немного выше и уже
+        # Сегменты кроны - треугольные полилинии
+        crown_actual_fill = fill_color if fill_color else "" # Для кроны используем выбранный цвет или без заливки
+        
+        # Нижний сегмент кроны
+        self.create_line(
+            min_x, crown_base_y, max_x, crown_base_y,
+            max_x, crown_base_y, min_x + width / 2, crown_base_y - crown_segment_height,
+            min_x + width / 2, crown_base_y - crown_segment_height, min_x, crown_base_y,
+            fill=outline_color, width=2, tags="shape_component tree_crown"
+        )
+        if crown_actual_fill:
+            self.create_polygon(
+                min_x, crown_base_y, max_x, crown_base_y,
+                min_x + width / 2, crown_base_y - crown_segment_height,
+                outline="", fill=crown_actual_fill, tags="shape_component tree_crown_fill"
+            )
+
+        # Средний сегмент кроны
+        self.create_line(
+            min_x + width / 6, crown_base_y - crown_segment_height * 0.8, 
             max_x - width / 6, crown_base_y - crown_segment_height * 0.8,
-            min_x + width / 2, min_y + crown_segment_height * 1.2 # Вершина чуть ниже
-        ]
-        self.create_polygon(poly2_coords, outline=outline_color, fill=fill_color if fill_color else "", width=2)
+            max_x - width / 6, crown_base_y - crown_segment_height * 0.8,
+            min_x + width / 2, min_y + crown_segment_height * 1.2,
+            min_x + width / 2, min_y + crown_segment_height * 1.2,
+            min_x + width / 6, crown_base_y - crown_segment_height * 0.8,
+            fill=outline_color, width=2, tags="shape_component tree_crown"
+        )
+        if crown_actual_fill:
+            self.create_polygon(
+                min_x + width / 6, crown_base_y - crown_segment_height * 0.8, 
+                max_x - width / 6, crown_base_y - crown_segment_height * 0.8,
+                min_x + width / 2, min_y + crown_segment_height * 1.2,
+                outline="", fill=crown_actual_fill, tags="shape_component tree_crown_fill"
+            )
 
-        # Верхний ярус кроны (верхушка)
-        poly3_coords = [
-            min_x + width / 3, min_y + crown_segment_height * 1.5, # Еще уже
+        # Верхний сегмент кроны
+        self.create_line(
+            min_x + width / 3, min_y + crown_segment_height * 1.5, 
             max_x - width / 3, min_y + crown_segment_height * 1.5,
-            min_x + width / 2, min_y
-        ]
-        self.create_polygon(poly3_coords, outline=outline_color, fill=fill_color if fill_color else "", width=2)
+            max_x - width / 3, min_y + crown_segment_height * 1.5,
+            min_x + width / 2, min_y,
+            min_x + width / 2, min_y,
+            min_x + width / 3, min_y + crown_segment_height * 1.5,
+            fill=outline_color, width=2, tags="shape_component tree_crown"
+        )
+        if crown_actual_fill:
+            self.create_polygon(
+                min_x + width / 3, min_y + crown_segment_height * 1.5, 
+                max_x - width / 3, min_y + crown_segment_height * 1.5,
+                min_x + width / 2, min_y,
+                outline="", fill=crown_actual_fill, tags="shape_component tree_crown_fill"
+            )
 
 # --- View ---
 class View(IView):
@@ -392,14 +580,14 @@ class Controller(IController):
             initial_color_name = next(iter(colors))
             initial_color_hex = colors[initial_color_name]
             self.handle_color_button_click(initial_color_hex, initial_color_name)
-        else: # Обработка случая пустых цветов
+        else:
             self.handle_color_button_click(DEFAULT_DRAWING_COLOR_HEX, DEFAULT_DRAWING_COLOR_NAME)
 
         figures = self._model.get_figures()
         if figures:
             initial_figure_name = next(iter(figures))
             self.handle_figure_button_click(initial_figure_name)
-        else: # Обработка случая пустых фигур
+        else:
             self.handle_figure_button_click(DEFAULT_ACTIVE_FIGURE)
 
     def handle_color_button_click(self, color_hex: str, color_name: str):
@@ -408,38 +596,24 @@ class Controller(IController):
 
     def handle_figure_button_click(self, figure_name: str):
         self._view.update_figure_display(figure_name)
-        if isinstance(self._view.canvas, Canvas): # Убедимся, что это наш Canvas
+        if isinstance(self._view.canvas, Canvas):
             self._view.canvas.set_active_figure(figure_name)
 
-    def handle_draw_shape_request(self, 
-                                  coordinates: Tuple[Tuple[int, int], Tuple[int, int]], 
-                                  figure_type: str):
-        # В будущем здесь может быть логика сохранения фигуры в модели
-        # print(f"Controller: Запрос на рисование {figure_type} с координатами {coordinates}")
+    def handle_draw_shape_request(self, coordinates: Tuple[Tuple[int, int], Tuple[int, int]], figure_type: str):
         self._view.draw_shape_on_canvas(coordinates, figure_type)
 
 # --- Application ---
 class App(IApp):
-    """Главный класс приложения."""
-    def __init__(self, master: tk.Tk):
-        self.master = master
-        self.model = Model()  # Используем цвета и фигуры по умолчанию
-        self.view = View(master, DEFAULT_WINDOW_TITLE)
-        # Контроллер создается после модели и представления
+    """Основной класс приложения, инициализирует MVC компоненты."""
+    def __init__(self, root: tk.Tk):
+        self.model = Model()
+        self.view = View(root, DEFAULT_WINDOW_TITLE)
         self.controller = Controller(self.model, self.view)
 
     def run(self):
-        """Запускает главный цикл приложения."""
         self.view.mainloop()
 
-# --- Entry Point ---
 if __name__ == "__main__":
     root = tk.Tk()
     app = App(root)
-    try:
-        app.run()
-    except Exception as e:
-        messagebox.showerror("Критическая ошибка", f"Произошла непредвиденная ошибка: {e}")
-        # Здесь можно добавить логирование ошибки
-        # import traceback
-        # traceback.print_exc()
+    app.run()
