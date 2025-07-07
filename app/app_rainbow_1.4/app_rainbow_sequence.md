@@ -1,5 +1,3 @@
-# Диаграмма последовательностей для приложения Rainbow (на основе MVC)
-
 ```mermaid
 sequenceDiagram
     participant User as Пользователь
@@ -8,102 +6,85 @@ sequenceDiagram
     participant View as Представление
     participant Controller as Контроллер
     participant ButtonColor as КнопкаЦвета
+    participant ButtonFigures as КнопкаФигуры
     participant Canvas as Холст
 
     %% Инициализация приложения
-    User->>App: Запуск приложения (run())
+    User->>App: +run()
     activate App
-    App->>App: __init__(master: Tk)
-    App->>Model: создание Model(colors)
+    App->>App: +__init__(master: Tk)
+    App->>Model: +__init__(colors, figures)
     activate Model
     Model-->>App: экземпляр Model
     deactivate Model
 
-    App->>View: создание View(master, title)
+    App->>View: +__init__(master, title)
     activate View
-    View->>View: создание основных фреймов
-    View->>View: создание color_label, color_entry
-    View->>Canvas: создание Canvas(parent, ...)
+    View->>Canvas: +__init__(parent, ...)
     activate Canvas
     Canvas-->>View: экземпляр Canvas
     deactivate Canvas
-    View->>View: привязка событий мыши к Canvas.paint() и Canvas.reset_last_pos()
     View-->>App: экземпляр View
     deactivate View
 
-    App->>Controller: создание Controller(model, view)
+    App->>Controller: +__init__(model, view)
     activate Controller
     Controller-->>App: экземпляр Controller
     deactivate Controller
 
-    App->>View: set_controller(controller)
+    App->>View: +set_controller(controller)
     activate View
-    View->>View: self.controller = controller
     View-->>App: контроллер установлен
     deactivate View
 
-    Controller->>View: create_buttons(model.get_colors())
+    App->>View: -__initialize_view_components()
     activate View
-    loop для каждого цвета в model.get_colors()
-        View->>ButtonColor: создание ButtonColor(parent, color_hex, color_name, command=lambda...)
+    View->>View: +create_color_buttons(model.get_colors())
+    loop для каждого цвета
+        View->>ButtonColor: +__init__(...)
         activate ButtonColor
         ButtonColor-->>View: экземпляр ButtonColor
         deactivate ButtonColor
-        View->>ButtonColor: button.config(command=lambda b=button: controller.handle_button_click(b))
     end
-    View-->>Controller: кнопки созданы
+    View->>View: +create_figure_buttons(model.get_figures())
+    loop для каждой фигуры
+        View->>ButtonFigures: +__init__(...)
+        activate ButtonFigures
+        ButtonFigures-->>View: экземпляр ButtonFigures
+        deactivate ButtonFigures
+    end
+    View-->>App: кнопки созданы
     deactivate View
 
-    %% Обработка нажатия кнопки цвета
-    User->>ButtonColor: нажатие на кнопку
+    %% Выбор цвета
+    User->>ButtonColor: +invoke()
     activate ButtonColor
-    ButtonColor->>Controller: handle_button_click(self) (через lambda)
+    ButtonColor->>Controller: +handle_color_button_click(color_hex, color_name)
     deactivate ButtonColor
     activate Controller
-    Controller->>View: update_color_display(button_widget: ButtonColor)
-    activate View
-    View->>ButtonColor: button_widget.show_color(self.color_label, self.color_entry)
-    activate ButtonColor
-    ButtonColor->>View: (обновление Label.config, Entry.delete/insert/config)
-    deactivate ButtonColor
-    View-->>Controller: отображение цвета обновлено
-    deactivate View
-
-    Controller->>View: set_drawing_color(button_widget.color_hex)
-    activate View
-    View->>Canvas: set_drawing_color(color_hex)
-    activate Canvas
-    Canvas-->>View: цвет для рисования установлен
-    deactivate Canvas
-    View-->>Controller: цвет для рисования передан Холсту
-    deactivate View
+    Controller->>View: +set_drawing_color(color_hex)
+    Controller->>View: +update_color_display(color_hex, color_name)
+    View->>Canvas: +set_drawing_color(color_hex)
+    View->>View: +update_color_display
     deactivate Controller
 
-    %% Рисование на холсте
-    User->>Canvas: движение мыши с зажатой кнопкой (событие <B1-Motion>)
-    activate Canvas
-    Canvas->>Canvas: paint(event)
-    Canvas->>Canvas: self.last_x, self.last_y = event.x, event.y
-    Canvas-->>User: линия нарисована
-    deactivate Canvas
-
-    User->>Canvas: отпускание кнопки мыши (событие <ButtonRelease-1>)
-    activate Canvas
-    Canvas->>Canvas: reset_last_pos(event)
-    Canvas->>Canvas: self.last_x, self.last_y = None, None
-    Canvas-->>User: позиция сброшена
-    deactivate Canvas
-
-    %% Рисование фигуры по координатам
-    User->>Controller: Запрос на рисование фигуры (координаты)
+    %% Выбор фигуры
+    User->>ButtonFigures: +invoke()
+    activate ButtonFigures
+    ButtonFigures->>Controller: +handle_figure_button_click(figure_name)
+    deactivate ButtonFigures
     activate Controller
-    Controller->>View: draw_shape_on_canvas(coordinates)
-    activate View
-    View->>Canvas: draw_shape(coordinates)
-    activate Canvas
-    Canvas->>Canvas: Рендеринг фигуры по координатам (например, create_polygon, create_oval и т.д.)
-    Canvas-->>View: Фигура нарисована
-    deactivate Canvas
-    View-->>Controller: Подтверждение рисования
-    deactivate View
+    Controller->>View: +set_active_figure(figure_name)
+    Controller->>View: +update_figure_display(figure_name)
+    View->>Canvas: +set_shape(figure_name)
+    View->>View: +update_figure_display
     deactivate Controller
+
+    %% Рисование фигуры мышью
+    User->>Canvas: -__on_press(event), -__on_drag(event)
+    activate Canvas
+    Canvas->>Canvas: -__on_press(event)
+    Canvas->>Canvas: -__on_drag(event) (многократно)
+    Canvas->>Canvas: +create_line(..., fill=цвет, ...)
+    Canvas-->>User: фигура нарисована
+    deactivate Canvas
