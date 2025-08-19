@@ -66,7 +66,7 @@ classDiagram
         +set_shape(figure_name)
         +create_line(...,fill=цвет,...)
         +on_press(event)
-        +on_drag(event)
+        +on_drag(event, is_filled: bool)
     }
 
     class Controller {
