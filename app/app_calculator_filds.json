@@ -7,6 +7,6 @@
     "**": "pow",
     "//": "floordiv",
     "%": "mod"},
-  "COUNT_FIELD": 3,
+  "COUNT_FIELD": 7,
   "TITLE": "Calculate example"
 }

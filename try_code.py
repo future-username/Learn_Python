@@ -604,457 +604,481 @@
 #     print(line, end='')
 
 # mermaid2py.py
-from __future__ import annotations
-from dataclasses import dataclass, field
-from typing import List, Optional, Dict, Union
-import re
-import asyncio
-from contextlib import contextmanager
+# from __future__ import annotations
+# from dataclasses import dataclass, field
+# from typing import List, Optional, Dict, Union
+# import re
+# import asyncio
+# from contextlib import contextmanager
 
-# ---------- IR ----------
-@dataclass
-class Participant:
-    name: str
-    label: Optional[str] = None
+# # ---------- IR ----------
+# @dataclass
+# class Participant:
+#     name: str
+#     label: Optional[str] = None
 
-@dataclass
-class Message:
-    src: str
-    dst: str
-    text: str
-    kind: str  # "call" or "return"
+# @dataclass
+# class Message:
+#     src: str
+#     dst: str
+#     text: str
+#     kind: str  # "call" or "return"
 
-@dataclass
-class AltBranch:
-    label: str
-    body: List["Node"] = field(default_factory=list)
+# @dataclass
+# class AltBranch:
+#     label: str
+#     body: List["Node"] = field(default_factory=list)
 
-@dataclass
-class AltBlock:
-    branches: List[AltBranch] = field(default_factory=list)
+# @dataclass
+# class AltBlock:
+#     branches: List[AltBranch] = field(default_factory=list)
 
-@dataclass
-class OptBlock:
-    label: str
-    body: List["Node"] = field(default_factory=list)
+# @dataclass
+# class OptBlock:
+#     label: str
+#     body: List["Node"] = field(default_factory=list)
 
-@dataclass
-class LoopBlock:
-    label: str
-    body: List["Node"] = field(default_factory=list)
+# @dataclass
+# class LoopBlock:
+#     label: str
+#     body: List["Node"] = field(default_factory=list)
 
-@dataclass
-class ParBlock:
-    branches: List[List["Node"]] = field(default_factory=list)
+# @dataclass
+# class ParBlock:
+#     branches: List[List["Node"]] = field(default_factory=list)
 
-@dataclass
-class CriticalBlock:
-    label: str
-    body: List["Node"] = field(default_factory=list)
-    option_label: Optional[str] = None
-    option_body: List["Node"] = field(default_factory=list)
+# @dataclass
+# class CriticalBlock:
+#     label: str
+#     body: List["Node"] = field(default_factory=list)
+#     option_label: Optional[str] = None
+#     option_body: List["Node"] = field(default_factory=list)
 
-@dataclass
-class Note:
-    label: str
+# @dataclass
+# class Note:
+#     label: str
 
-Node = Union[Message, AltBlock, OptBlock, LoopBlock, ParBlock, CriticalBlock, Note]
+# Node = Union[Message, AltBlock, OptBlock, LoopBlock, ParBlock, CriticalBlock, Note]
 
-@dataclass
-class Diagram:
-    participants: Dict[str, Participant]
-    body: List[Node]
+# @dataclass
+# class Diagram:
+#     participants: Dict[str, Participant]
+#     body: List[Node]
 
-# ---------- Parser ----------
-ARROW_RE = re.compile(r"^\s*([A-Za-z_][\w]*)\s*(-{2}|-)?(>>|>)\s*([A-Za-z_][\w]*)\s*:\s*(.+)$")
-PARTICIPANT_RE = re.compile(r"^\s*participant\s+([A-Za-z_][\w]*)(?:\s+as\s+(.+))?\s*$")
-ALT_RE = re.compile(r"^\s*alt\s*(.*)$")
-ELSE_RE = re.compile(r"^\s*else\s*(.*)$")
-END_RE = re.compile(r"^\s*end\s*$")
-OPT_RE = re.compile(r"^\s*opt\s*(.*)$")
-LOOP_RE = re.compile(r"^\s*loop\s*(.*)$")
-PAR_RE = re.compile(r"^\s*par\s*(.*)$")
-AND_RE = re.compile(r"^\s*and\s*(.*)$")
-CRIT_RE = re.compile(r"^\s*critical\s*(.*)$")
-OPTION_RE = re.compile(r"^\s*option\s*(.*)$")
-NOTE_RE = re.compile(r"^\s*Note\s+(?:over|left of|right of)\s+.+:\s*(.*)$")
-IGNORE_RE = re.compile(r"^\s*(sequenceDiagram|autonumber|activate|deactivate|create|destroy|box|rect|end\s+box|%%).*")
+# # ---------- Parser ----------
+# ARROW_RE = re.compile(r"^\s*([A-Za-z_][\w]*)\s*(-{2}|-)?(>>|>)\s*([A-Za-z_][\w]*)\s*:\s*(.+)$")
+# PARTICIPANT_RE = re.compile(r"^\s*participant\s+([A-Za-z_][\w]*)(?:\s+as\s+(.+))?\s*$")
+# ALT_RE = re.compile(r"^\s*alt\s*(.*)$")
+# ELSE_RE = re.compile(r"^\s*else\s*(.*)$")
+# END_RE = re.compile(r"^\s*end\s*$")
+# OPT_RE = re.compile(r"^\s*opt\s*(.*)$")
+# LOOP_RE = re.compile(r"^\s*loop\s*(.*)$")
+# PAR_RE = re.compile(r"^\s*par\s*(.*)$")
+# AND_RE = re.compile(r"^\s*and\s*(.*)$")
+# CRIT_RE = re.compile(r"^\s*critical\s*(.*)$")
+# OPTION_RE = re.compile(r"^\s*option\s*(.*)$")
+# NOTE_RE = re.compile(r"^\s*Note\s+(?:over|left of|right of)\s+.+:\s*(.*)$")
+# IGNORE_RE = re.compile(r"^\s*(sequenceDiagram|autonumber|activate|deactivate|create|destroy|box|rect|end\s+box|%%).*")
 
-def parse_mermaid(text: str) -> Diagram:
-    participants: Dict[str, Participant] = {}
-    body: List[Node] = []
-    stack: List[List[Node]] = [body]
-    alt_stack: List[AltBlock] = []
-    par_stack: List[ParBlock] = []
-    crit_stack: List[CriticalBlock] = []
+# def parse_mermaid(text: str) -> Diagram:
+#     participants: Dict[str, Participant] = {}
+#     body: List[Node] = []
+#     stack: List[List[Node]] = [body]
+#     alt_stack: List[AltBlock] = []
+#     par_stack: List[ParBlock] = []
+#     crit_stack: List[CriticalBlock] = []
 
-    def current_body() -> List[Node]:
-        return stack[-1]
+#     def current_body() -> List[Node]:
+#         return stack[-1]
 
-    for raw in text.splitlines():
-        line = raw.strip("\n")
-        if not line.strip():
-            continue
+#     for raw in text.splitlines():
+#         line = raw.strip("\n")
+#         if not line.strip():
+#             continue
 
-        # participants
-        m = PARTICIPANT_RE.match(line)
-        if m:
-            name, label = m.group(1), (m.group(2).strip() if m.group(2) else None)
-            participants[name] = Participant(name=name, label=label)
-            continue
+#         # participants
+#         m = PARTICIPANT_RE.match(line)
+#         if m:
+#             name, label = m.group(1), (m.group(2).strip() if m.group(2) else None)
+#             participants[name] = Participant(name=name, label=label)
+#             continue
 
-        # ignore visuals/comments
-        if IGNORE_RE.match(line):
-            continue
+#         # ignore visuals/comments
+#         if IGNORE_RE.match(line):
+#             continue
 
-        # notes
-        m = NOTE_RE.match(line)
-        if m:
-            current_body().append(Note(label=m.group(1).strip()))
-            continue
+#         # notes
+#         m = NOTE_RE.match(line)
+#         if m:
+#             current_body().append(Note(label=m.group(1).strip()))
+#             continue
 
-        # alt
-        m = ALT_RE.match(line)
-        if m:
-            blk = AltBlock(branches=[AltBranch(label=(m.group(1) or "condition").strip())])
-            current_body().append(blk)
-            alt_stack.append(blk)
-            stack.append(blk.branches[0].body)
-            continue
+#         # alt
+#         m = ALT_RE.match(line)
+#         if m:
+#             blk = AltBlock(branches=[AltBranch(label=(m.group(1) or "condition").strip())])
+#             current_body().append(blk)
+#             alt_stack.append(blk)
+#             stack.append(blk.branches[0].body)
+#             continue
 
-        m = ELSE_RE.match(line)
-        if m and alt_stack:
-            stack.pop()  # end previous branch body
-            blk = alt_stack[-1]
-            blk.branches.append(AltBranch(label=(m.group(1) or "else").strip()))
-            stack.append(blk.branches[-1].body)
-            continue
+#         m = ELSE_RE.match(line)
+#         if m and alt_stack:
+#             stack.pop()  # end previous branch body
+#             blk = alt_stack[-1]
+#             blk.branches.append(AltBranch(label=(m.group(1) or "else").strip()))
+#             stack.append(blk.branches[-1].body)
+#             continue
 
-        # opt
-        m = OPT_RE.match(line)
-        if m:
-            blk = OptBlock(label=(m.group(1) or "optional").strip())
-            current_body().append(blk)
-            stack.append(blk.body)
-            continue
+#         # opt
+#         m = OPT_RE.match(line)
+#         if m:
+#             blk = OptBlock(label=(m.group(1) or "optional").strip())
+#             current_body().append(blk)
+#             stack.append(blk.body)
+#             continue
 
-        # loop
-        m = LOOP_RE.match(line)
-        if m:
-            blk = LoopBlock(label=(m.group(1) or "loop").strip())
-            current_body().append(blk)
-            stack.append(blk.body)
-            continue
+#         # loop
+#         m = LOOP_RE.match(line)
+#         if m:
+#             blk = LoopBlock(label=(m.group(1) or "loop").strip())
+#             current_body().append(blk)
+#             stack.append(blk.body)
+#             continue
 
-        # par
-        m = PAR_RE.match(line)
-        if m:
-            blk = ParBlock(branches=[[]])
-            current_body().append(blk)
-            par_stack.append(blk)
-            stack.append(blk.branches[0])
-            continue
+#         # par
+#         m = PAR_RE.match(line)
+#         if m:
+#             blk = ParBlock(branches=[[]])
+#             current_body().append(blk)
+#             par_stack.append(blk)
+#             stack.append(blk.branches[0])
+#             continue
 
-        m = AND_RE.match(line)
-        if m and par_stack:
-            stack.pop()
-            blk = par_stack[-1]
-            blk.branches.append([])
-            stack.append(blk.branches[-1])
-            continue
+#         m = AND_RE.match(line)
+#         if m and par_stack:
+#             stack.pop()
+#             blk = par_stack[-1]
+#             blk.branches.append([])
+#             stack.append(blk.branches[-1])
+#             continue
 
-        # critical
-        m = CRIT_RE.match(line)
-        if m:
-            blk = CriticalBlock(label=(m.group(1) or "critical").strip())
-            current_body().append(blk)
-            crit_stack.append(blk)
-            stack.append(blk.body)
-            continue
+#         # critical
+#         m = CRIT_RE.match(line)
+#         if m:
+#             blk = CriticalBlock(label=(m.group(1) or "critical").strip())
+#             current_body().append(blk)
+#             crit_stack.append(blk)
+#             stack.append(blk.body)
+#             continue
 
-        m = OPTION_RE.match(line)
-        if m and crit_stack:
-            stack.pop()
-            blk = crit_stack[-1]
-            blk.option_label = (m.group(1) or "option").strip()
-            stack.append(blk.option_body)
-            continue
+#         m = OPTION_RE.match(line)
+#         if m and crit_stack:
+#             stack.pop()
+#             blk = crit_stack[-1]
+#             blk.option_label = (m.group(1) or "option").strip()
+#             stack.append(blk.option_body)
+#             continue
 
-        # end
-        if END_RE.match(line):
-            # close whichever block is active
-            if alt_stack:
-                stack.pop()
-                alt_stack.pop()
-            elif par_stack:
-                stack.pop()
-                par_stack.pop()
-            elif crit_stack:
-                stack.pop()
-                crit_stack.pop()
-            else:
-                if len(stack) > 1:
-                    stack.pop()
-            continue
+#         # end
+#         if END_RE.match(line):
+#             # close whichever block is active
+#             if alt_stack:
+#                 stack.pop()
+#                 alt_stack.pop()
+#             elif par_stack:
+#                 stack.pop()
+#                 par_stack.pop()
+#             elif crit_stack:
+#                 stack.pop()
+#                 crit_stack.pop()
+#             else:
+#                 if len(stack) > 1:
+#                     stack.pop()
+#             continue
 
-        # message
-        m = ARROW_RE.match(line)
-        if m:
-            src, _, arrow, dst, text = m.group(1), m.group(2), m.group(3), m.group(4), m.group(5).strip()
-            kind = "return" if arrow == ">" else "call"
-            current_body().append(Message(src=src, dst=dst, text=text, kind=kind))
-            continue
+#         # message
+#         m = ARROW_RE.match(line)
+#         if m:
+#             src, _, arrow, dst, text = m.group(1), m.group(2), m.group(3), m.group(4), m.group(5).strip()
+#             kind = "return" if arrow == ">" else "call"
+#             current_body().append(Message(src=src, dst=dst, text=text, kind=kind))
+#             continue
 
-        # fallback: ignore unknown lines
-        # print(f"IGNORED: {line}")
+#         # fallback: ignore unknown lines
+#         # print(f"IGNORED: {line}")
 
-    return Diagram(participants=participants, body=body)
+#     return Diagram(participants=participants, body=body)
 
-# ---------- Codegen ----------
-def snake(s: str) -> str:
-    s = re.sub(r"[^\w]+", "_", s.strip())
-    s = re.sub(r"_+", "_", s)
-    return s.strip("_").lower() or "step"
+# # ---------- Codegen ----------
+# def snake(s: str) -> str:
+#     s = re.sub(r"[^\w]+", "_", s.strip())
+#     s = re.sub(r"_+", "_", s)
+#     return s.strip("_").lower() or "step"
 
-def indent(s: str, n: int = 1) -> str:
-    pad = "    " * n
-    return "\n".join(pad + line if line else "" for line in s.splitlines())
+# def indent(s: str, n: int = 1) -> str:
+#     pad = "    " * n
+#     return "\n".join(pad + line if line else "" for line in s.splitlines())
 
-@contextmanager
-def transaction():
-    # TODO: plug your real transaction here
-    try:
-        yield
-    except Exception:
-        # rollback logic
-        raise
+# @contextmanager
+# def transaction():
+#     # TODO: plug your real transaction here
+#     try:
+#         yield
+#     except Exception:
+#         # rollback logic
+#         raise
 
-def collect_participants(di: Diagram) -> List[str]:
-    names = set(di.participants.keys())
-    # also from messages
-    def walk(nodes: List[Node]):
-        for n in nodes:
-            if isinstance(n, Message):
-                names.add(n.src); names.add(n.dst)
-            elif isinstance(n, AltBlock):
-                for b in n.branches: walk(b.body)
-            elif isinstance(n, OptBlock): walk(n.body)
-            elif isinstance(n, LoopBlock): walk(n.body)
-            elif isinstance(n, ParBlock):
-                for br in n.branches: walk(br)
-            elif isinstance(n, CriticalBlock):
-                walk(n.body); walk(n.option_body)
-            else:
-                pass
-    walk(di.body)
-    return sorted(names)
+# def collect_participants(di: Diagram) -> List[str]:
+#     names = set(di.participants.keys())
+#     # also from messages
+#     def walk(nodes: List[Node]):
+#         for n in nodes:
+#             if isinstance(n, Message):
+#                 names.add(n.src); names.add(n.dst)
+#             elif isinstance(n, AltBlock):
+#                 for b in n.branches: walk(b.body)
+#             elif isinstance(n, OptBlock): walk(n.body)
+#             elif isinstance(n, LoopBlock): walk(n.body)
+#             elif isinstance(n, ParBlock):
+#                 for br in n.branches: walk(br)
+#             elif isinstance(n, CriticalBlock):
+#                 walk(n.body); walk(n.option_body)
+#             else:
+#                 pass
+#     walk(di.body)
+#     return sorted(names)
 
-def gen_classes(di: Diagram) -> str:
-    out = []
-    for name in collect_participants(di):
-        label = di.participants.get(name, Participant(name)).label
-        title = label or name
-        out.append(f"class {name}:")
-        doc = f'"""Participant: {title}"""'
-        out.append(indent(doc, 1))
-        out.append(indent("def __init__(self):\n        pass", 1))
-        out.append("")  # blank
-    return "\n".join(out)
+# def gen_classes(di: Diagram) -> str:
+#     out = []
+#     for name in collect_participants(di):
+#         label = di.participants.get(name, Participant(name)).label
+#         title = label or name
+#         out.append(f"class {name}:")
+#         doc = f'"""Participant: {title}"""'
+#         out.append(indent(doc, 1))
+#         out.append(indent("def __init__(self):\n        pass", 1))
+#         out.append("")  # blank
+#     return "\n".join(out)
 
-def gen_steps(nodes: List[Node], ctx_vars: List[str], step_counter: List[int], depth: int=0, async_mode: bool=False) -> str:
-    lines: List[str] = []
-    def new_step():
-        step_counter[0] += 1
-        return step_counter[0]
+# def gen_steps(nodes: List[Node], ctx_vars: List[str], step_counter: List[int], depth: int=0, async_mode: bool=False) -> str:
+#     lines: List[str] = []
+#     def new_step():
+#         step_counter[0] += 1
+#         return step_counter[0]
 
-    for n in nodes:
-        if isinstance(n, Note):
-            lines.append(f"# NOTE: {n.label}")
-        elif isinstance(n, Message):
-            if n.kind == "call":
-                s = new_step()
-                fname = f"step_{s}_{snake(n.src)}_to_{snake(n.dst)}_{snake(n.text)}"
-                args = ", ".join(ctx_vars)
-                lines.append(f"await {fname}({args})" if async_mode else f"{fname}({args})")
-            else:
-                lines.append(f"# return: {n.src} -> {n.dst}: {n.text}")
-        elif isinstance(n, OptBlock):
-            cond = snake(n.label or "optional") or "cond"
-            lines.append(f"if {cond}:")
-            lines.append(indent(gen_steps(n.body, ctx_vars, step_counter, depth+1, async_mode), 1))
-        elif isinstance(n, AltBlock):
-            for i, br in enumerate(n.branches):
-                kw = "if" if i == 0 else "else"
-                lbl = snake(br.label or ( "branch" if i==0 else "else"))
-                head = f"{kw} {lbl}:" if kw == "if" else "else:"
-                lines.append(head)
-                lines.append(indent(gen_steps(br.body, ctx_vars, step_counter, depth+1, async_mode), 1))
-        elif isinstance(n, LoopBlock):
-            it = snake(n.label or "loop") or "n"
-            lines.append(f"for i in range({it}):")
-            lines.append(indent(gen_steps(n.body, ctx_vars, step_counter, depth+1, async_mode), 1))
-        elif isinstance(n, ParBlock):
-            # turn each branch into an async task
-            async_mode = True
-            branch_calls = []
-            inner_defs = []
-            for bi, br in enumerate(n.branches, start=1):
-                s = new_step()
-                fn = f"branch_{s}_{bi}"
-                body = gen_steps(br, ctx_vars, step_counter, depth+1, async_mode=True)
-                inner_defs.append(f"async def {fn}({', '.join(ctx_vars)}):\n{indent(body,1) or indent('pass',1)}")
-                branch_calls.append(f"{fn}({', '.join(ctx_vars)})")
-            lines.extend(inner_defs)
-            lines.append(f"await asyncio.gather(\n{indent(',\n'.join(branch_calls),1)}\n)")
-        elif isinstance(n, CriticalBlock):
-            lines.append("try:")
-            lines.append(indent("with transaction():", 1))
-            inner = gen_steps(n.body, ctx_vars, step_counter, depth+1, async_mode)
-            lines.append(indent(inner or "pass", 2))
-            if n.option_body:
-                lines.append("except Exception:")
-                alt = gen_steps(n.option_body, ctx_vars, step_counter, depth+1, async_mode)
-                lines.append(indent(alt or "raise", 1))
-            else:
-                lines.append("except Exception:\n    raise")
-    return "\n".join(lines)
+#     for n in nodes:
+#         if isinstance(n, Note):
+#             lines.append(f"# NOTE: {n.label}")
+#         elif isinstance(n, Message):
+#             if n.kind == "call":
+#                 s = new_step()
+#                 fname = f"step_{s}_{snake(n.src)}_to_{snake(n.dst)}_{snake(n.text)}"
+#                 args = ", ".join(ctx_vars)
+#                 lines.append(f"await {fname}({args})" if async_mode else f"{fname}({args})")
+#             else:
+#                 lines.append(f"# return: {n.src} -> {n.dst}: {n.text}")
+#         elif isinstance(n, OptBlock):
+#             cond = snake(n.label or "optional") or "cond"
+#             lines.append(f"if {cond}:")
+#             lines.append(indent(gen_steps(n.body, ctx_vars, step_counter, depth+1, async_mode), 1))
+#         elif isinstance(n, AltBlock):
+#             for i, br in enumerate(n.branches):
+#                 kw = "if" if i == 0 else "else"
+#                 lbl = snake(br.label or ( "branch" if i==0 else "else"))
+#                 head = f"{kw} {lbl}:" if kw == "if" else "else:"
+#                 lines.append(head)
+#                 lines.append(indent(gen_steps(br.body, ctx_vars, step_counter, depth+1, async_mode), 1))
+#         elif isinstance(n, LoopBlock):
+#             it = snake(n.label or "loop") or "n"
+#             lines.append(f"for i in range({it}):")
+#             lines.append(indent(gen_steps(n.body, ctx_vars, step_counter, depth+1, async_mode), 1))
+#         elif isinstance(n, ParBlock):
+#             # turn each branch into an async task
+#             async_mode = True
+#             branch_calls = []
+#             inner_defs = []
+#             for bi, br in enumerate(n.branches, start=1):
+#                 s = new_step()
+#                 fn = f"branch_{s}_{bi}"
+#                 body = gen_steps(br, ctx_vars, step_counter, depth+1, async_mode=True)
+#                 inner_defs.append(f"async def {fn}({', '.join(ctx_vars)}):\n{indent(body,1) or indent('pass',1)}")
+#                 branch_calls.append(f"{fn}({', '.join(ctx_vars)})")
+#             lines.extend(inner_defs)
+#             lines.append(f"await asyncio.gather(\n{indent(',\n'.join(branch_calls),1)}\n)")
+#         elif isinstance(n, CriticalBlock):
+#             lines.append("try:")
+#             lines.append(indent("with transaction():", 1))
+#             inner = gen_steps(n.body, ctx_vars, step_counter, depth+1, async_mode)
+#             lines.append(indent(inner or "pass", 2))
+#             if n.option_body:
+#                 lines.append("except Exception:")
+#                 alt = gen_steps(n.option_body, ctx_vars, step_counter, depth+1, async_mode)
+#                 lines.append(indent(alt or "raise", 1))
+#             else:
+#                 lines.append("except Exception:\n    raise")
+#     return "\n".join(lines)
 
-def gen_functions(di: Diagram) -> str:
-    steps: List[str] = []
-    seen: set[str] = set()
-    def walk(nodes: List[Node]):
-        for n in nodes:
-            if isinstance(n, Message) and n.kind == "call":
-                name = f"{snake(n.src)}_to_{snake(n.dst)}_{snake(n.text)}"
-                if name not in seen:
-                    seen.add(name)
-                    fn = f"def step_{len(seen)}_{name}({', '.join(collect_participants(di))}):\n    # TODO: implement `{n.text}` from {n.src} -> {n.dst}\n    pass"
-                    steps.append(fn)
-            elif isinstance(n, AltBlock):
-                for b in n.branches: walk(b.body)
-            elif isinstance(n, OptBlock): walk(n.body)
-            elif isinstance(n, LoopBlock): walk(n.body)
-            elif isinstance(n, ParBlock):
-                for br in n.branches: walk(br)
-            elif isinstance(n, CriticalBlock):
-                walk(n.body); walk(n.option_body)
-    walk(di.body)
-    return "\n\n".join(steps)
+# def gen_functions(di: Diagram) -> str:
+#     steps: List[str] = []
+#     seen: set[str] = set()
+#     def walk(nodes: List[Node]):
+#         for n in nodes:
+#             if isinstance(n, Message) and n.kind == "call":
+#                 name = f"{snake(n.src)}_to_{snake(n.dst)}_{snake(n.text)}"
+#                 if name not in seen:
+#                     seen.add(name)
+#                     fn = f"def step_{len(seen)}_{name}({', '.join(collect_participants(di))}):\n    # TODO: implement `{n.text}` from {n.src} -> {n.dst}\n    pass"
+#                     steps.append(fn)
+#             elif isinstance(n, AltBlock):
+#                 for b in n.branches: walk(b.body)
+#             elif isinstance(n, OptBlock): walk(n.body)
+#             elif isinstance(n, LoopBlock): walk(n.body)
+#             elif isinstance(n, ParBlock):
+#                 for br in n.branches: walk(br)
+#             elif isinstance(n, CriticalBlock):
+#                 walk(n.body); walk(n.option_body)
+#     walk(di.body)
+#     return "\n\n".join(steps)
 
-def generate_python(di: Diagram) -> str:
-    parts = collect_participants(di)
-    classes = gen_classes(di)
-    functions = gen_functions(di)
-    # orchestrator
-    step_counter = [0]
-    body = gen_steps(di.body, parts, step_counter, async_mode=False)
-    # wrap in async if needed
-    needs_async = "asyncio.gather" in body or "await " in body
-    orchestrator = []
-    if needs_async:
-        orchestrator.append("async def main():")
-        orchestrator.append(indent("\n".join([f"{p} = {p}()" for p in parts]), 1))
-        orchestrator.append(indent(body or "pass", 1))
-        orchestrator.append("\nif __name__ == '__main__':\n    asyncio.run(main())")
-    else:
-        orchestrator.append("def main():")
-        orchestrator.append(indent("\n".join([f"{p} = {p}()" for p in parts]), 1))
-        orchestrator.append(indent(body or "pass", 1))
-        orchestrator.append("\nif __name__ == '__main__':\n    main()")
-    prelude = "import asyncio\nfrom contextlib import contextmanager\n\n" + transaction.__code__.co_consts[0] if False else ""
-    return "\n\n".join([
-        "# Generated from Mermaid sequence diagram",
-        "import asyncio",
-        "from contextlib import contextmanager",
-        "",
-        "@" + "contextmanager",
-        "def transaction():\n    try:\n        yield\n    except Exception:\n        raise",
-        "",
-        classes,
-        functions,
-        "\n".join(orchestrator),
-    ])
+# def generate_python(di: Diagram) -> str:
+#     parts = collect_participants(di)
+#     classes = gen_classes(di)
+#     functions = gen_functions(di)
+#     # orchestrator
+#     step_counter = [0]
+#     body = gen_steps(di.body, parts, step_counter, async_mode=False)
+#     # wrap in async if needed
+#     needs_async = "asyncio.gather" in body or "await " in body
+#     orchestrator = []
+#     if needs_async:
+#         orchestrator.append("async def main():")
+#         orchestrator.append(indent("\n".join([f"{p} = {p}()" for p in parts]), 1))
+#         orchestrator.append(indent(body or "pass", 1))
+#         orchestrator.append("\nif __name__ == '__main__':\n    asyncio.run(main())")
+#     else:
+#         orchestrator.append("def main():")
+#         orchestrator.append(indent("\n".join([f"{p} = {p}()" for p in parts]), 1))
+#         orchestrator.append(indent(body or "pass", 1))
+#         orchestrator.append("\nif __name__ == '__main__':\n    main()")
+#     prelude = "import asyncio\nfrom contextlib import contextmanager\n\n" + transaction.__code__.co_consts[0] if False else ""
+#     return "\n\n".join([
+#         "# Generated from Mermaid sequence diagram",
+#         "import asyncio",
+#         "from contextlib import contextmanager",
+#         "",
+#         "@" + "contextmanager",
+#         "def transaction():\n    try:\n        yield\n    except Exception:\n        raise",
+#         "",
+#         classes,
+#         functions,
+#         "\n".join(orchestrator),
+#     ])
 
-# ---------- CLI-like usage ----------
-def translate(mermaid_text: str) -> str:
-    di = parse_mermaid(mermaid_text)
-    return generate_python(di)
+# # ---------- CLI-like usage ----------
+# def translate(mermaid_text: str) -> str:
+#     di = parse_mermaid(mermaid_text)
+#     return generate_python(di)
 
-if __name__ == "__main__":
-    demo = ''sequenceDiagram
-    participant User
-    participant Main as Main (if __name__ == "__main__")
-    participant App
-    participant Model
-    participant View
-    participant Controller
-    participant Canvas
-    participant ButtonColor
-    participant ButtonFigures
+# if __name__ == "__main__":
+#     demo = ''sequenceDiagram
+#     participant User
+#     participant Main as Main (if __name__ == "__main__")
+#     participant App
+#     participant Model
+#     participant View
+#     participant Controller
+#     participant Canvas
+#     participant ButtonColor
+#     participant ButtonFigures
     
-    User->>Main: Запуск приложения
-    Main->>App: создание App(root)
+#     User->>Main: Запуск приложения
+#     Main->>App: создание App(root)
     
-    Note over App: Приватные поля: __master, __model, __view, __controller
-    App->>Model: создание Model(colors, figures)
-    Note over Model: Приватные поля: __colors, __figures
+#     Note over App: Приватные поля: __master, __model, __view, __controller
+#     App->>Model: создание Model(colors, figures)
+#     Note over Model: Приватные поля: __colors, __figures
     
-    App->>View: создание View(master, title)
-    Note over View: Приватные поля: __master, __controller, __color_frame, __figure_frame,<br>__color_label, __color_entry, __figure_label, __buttons_frame,<br>__color_buttons_panel, __figure_buttons_panel, __canvas
+#     App->>View: создание View(master, title)
+#     Note over View: Приватные поля: __master, __controller, __color_frame, __figure_frame,<br>__color_label, __color_entry, __figure_label, __buttons_frame,<br>__color_buttons_panel, __figure_buttons_panel, __canvas
     
-    App->>Controller: создание Controller(model, view)
-    Note over Controller: Приватные поля: __model, __view
+#     App->>Controller: создание Controller(model, view)
+#     Note over Controller: Приватные поля: __model, __view
     
-    View->>Controller: set_controller(controller)
+#     View->>Controller: set_controller(controller)
     
-    App->>App: __initialize_view_components()
-    App->>Model: get_colors()
-    App->>View: create_color_buttons(colors)
-    View->>ButtonColor: создание кнопок цветов
-    Note over ButtonColor: Приватные поля: __color_hex, __color_name
+#     App->>App: __initialize_view_components()
+#     App->>Model: get_colors()
+#     App->>View: create_color_buttons(colors)
+#     View->>ButtonColor: создание кнопок цветов
+#     Note over ButtonColor: Приватные поля: __color_hex, __color_name
     
-    App->>Model: get_figures()
-    App->>View: create_figure_buttons(figures)
-    View->>ButtonFigures: создание кнопок фигур
-    Note over ButtonFigures: Приватные поля: __figure_name, __figure_params
+#     App->>Model: get_figures()
+#     App->>View: create_figure_buttons(figures)
+#     View->>ButtonFigures: создание кнопок фигур
+#     Note over ButtonFigures: Приватные поля: __figure_name, __figure_params
     
-    App->>Model: get_color_name(initial_color_hex)
-    App->>Controller: handle_color_button_click(initial_color_hex, initial_color_name)
-    Controller->>View: set_drawing_color(color_hex)
-    View->>Canvas: set_drawing_color(color_hex)
-    Note over Canvas: Приватные поля: __drawing_color, __current_shape, __start_x,<br>__start_y, __current_shape_id, __shapes
+#     App->>Model: get_color_name(initial_color_hex)
+#     App->>Controller: handle_color_button_click(initial_color_hex, initial_color_name)
+#     Controller->>View: set_drawing_color(color_hex)
+#     View->>Canvas: set_drawing_color(color_hex)
+#     Note over Canvas: Приватные поля: __drawing_color, __current_shape, __start_x,<br>__start_y, __current_shape_id, __shapes
     
-    Controller->>View: update_color_display(color_hex, color_name)
+#     Controller->>View: update_color_display(color_hex, color_name)
     
-    App->>Controller: handle_figure_button_click(initial_figure)
-    Controller->>View: set_active_figure(figure_name)
-    View->>Canvas: set_shape(figure_name)
-    Controller->>View: update_figure_display(figure_name)
+#     App->>Controller: handle_figure_button_click(initial_figure)
+#     Controller->>View: set_active_figure(figure_name)
+#     View->>Canvas: set_shape(figure_name)
+#     Controller->>View: update_figure_display(figure_name)
     
-    App->>View: mainloop()
+#     App->>View: mainloop()
     
-    Note over User, Canvas: Взаимодействие пользователя с приложением
+#     Note over User, Canvas: Взаимодействие пользователя с приложением
     
-    User->>ButtonColor: Клик на кнопку цвета
-    ButtonColor->>Controller: handle_color_button_click(color_hex, color_name)
-    Controller->>View: set_drawing_color(color_hex)
-    View->>Canvas: set_drawing_color(color_hex)
-    Controller->>View: update_color_display(color_hex, color_name)
+#     User->>ButtonColor: Клик на кнопку цвета
+#     ButtonColor->>Controller: handle_color_button_click(color_hex, color_name)
+#     Controller->>View: set_drawing_color(color_hex)
+#     View->>Canvas: set_drawing_color(color_hex)
+#     Controller->>View: update_color_display(color_hex, color_name)
     
-    User->>ButtonFigures: Клик на кнопку фигуры
-    ButtonFigures->>Controller: handle_figure_button_click(figure_name)
-    Controller->>View: set_active_figure(figure_name)
-    View->>Canvas: set_shape(figure_name)
-    Controller->>View: update_figure_display(figure_name)
+#     User->>ButtonFigures: Клик на кнопку фигуры
+#     ButtonFigures->>Controller: handle_figure_button_click(figure_name)
+#     Controller->>View: set_active_figure(figure_name)
+#     View->>Canvas: set_shape(figure_name)
+#     Controller->>View: update_figure_display(figure_name)
     
-    User->>Canvas: Нажатие кнопки мыши (ButtonPress-1)
-    Canvas->>Canvas: __on_press(event)
-    User->>Canvas: Перетаскивание мыши (B1-Motion)
-    Canvas->>Canvas: __on_drag(event)
-    Note over Canvas: Приватные методы: __on_press(), __on_drag()
-    Canvas->>Canvas: Расчет координат фигуры
-    Canvas->>Canvas: create_line(shape_points)
-    User->>Canvas: Отпускание кнопки мыши (ButtonRelease-1)
-    Canvas->>Canvas: __on_drag(event, is_filled: bool)
-    '''
-    print(translate(demo))
+#     User->>Canvas: Нажатие кнопки мыши (ButtonPress-1)
+#     Canvas->>Canvas: __on_press(event)
+#     User->>Canvas: Перетаскивание мыши (B1-Motion)
+#     Canvas->>Canvas: __on_drag(event)
+#     Note over Canvas: Приватные методы: __on_press(), __on_drag()
+#     Canvas->>Canvas: Расчет координат фигуры
+#     Canvas->>Canvas: create_line(shape_points)
+#     User->>Canvas: Отпускание кнопки мыши (ButtonRelease-1)
+#     Canvas->>Canvas: __on_drag(event, is_filled: bool)
+#     '''
+#     print(translate(demo))
+
+
+
+import os
+import sys
+import google.generativeai as genai
+
+# Получаем API-ключ
+
+genai.configure(api_key="AIzaSyA9OhSaCjx4xpR9Ul8gPUTfX52q8ZY1W9Y")
+
+# Получаем запрос из аргументов
+prompt = " ".join(sys.argv[1:]) if len(sys.argv) > 1 else "Привет!"
+
+# Выбираем модель
+model = genai.GenerativeModel("gemini-2.5-pro")
+
+# Отправляем запрос
+response = model.generate_content(prompt)
+
+# Выводим результат
+print("\n🧠 Ответ от Gemini:\n")
+print(response.text)
+
