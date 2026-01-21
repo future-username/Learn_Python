@@ -1061,24 +1061,266 @@
 
 
 
-import os
-import sys
-import google.generativeai as genai
+# import os
+# import sys
+# import google.generativeai as genai
 
-# Получаем API-ключ
+# # Получаем API-ключ
 
-genai.configure(api_key="AIzaSyA9OhSaCjx4xpR9Ul8gPUTfX52q8ZY1W9Y")
+# genai.configure(api_key="AIzaSyA9OhSaCjx4xpR9Ul8gPUTfX52q8ZY1W9Y")
 
-# Получаем запрос из аргументов
-prompt = " ".join(sys.argv[1:]) if len(sys.argv) > 1 else "Привет!"
+# # Получаем запрос из аргументов
+# prompt = " ".join(sys.argv[1:]) if len(sys.argv) > 1 else "Привет!"
 
-# Выбираем модель
-model = genai.GenerativeModel("gemini-2.5-pro")
+# # Выбираем модель
+# model = genai.GenerativeModel("gemini-2.5-pro")
 
-# Отправляем запрос
-response = model.generate_content(prompt)
+# # Отправляем запрос
+# response = model.generate_content(prompt)
 
-# Выводим результат
-print("\n🧠 Ответ от Gemini:\n")
-print(response.text)
+# # Выводим результат
+# print("\n🧠 Ответ от Gemini:\n")
+# print(response.text)
 
+# def f():
+#     try:
+#         return 1
+#     except Exception:
+#         return 2
+#     finally: print(3)
+#
+# print(f())
+
+
+import tkinter as tk
+from tkinter import messagebox
+from enum import Enum
+
+
+class CalculatorState(Enum):
+    """Перечисление состояний калькулятора"""
+    IDLE = "idle"
+    PROCESSING = "processing"
+    NORMALIZING = "normalizing"
+    VALIDATING = "validating"
+    CALCULATING = "calculating"
+    ERROR = "error"
+    RESULT = "result"
+
+
+class NumberNormalizer:
+    """Класс для нормализации числовых строк"""
+
+    @staticmethod
+    def normalize_number(value: str) -> str:
+        """
+        Нормализует строку с числом
+
+        Args:
+            value: Входная строка
+
+        Returns:
+            Нормализованная строка
+        """
+        if not value:
+            return "0"
+
+        result = value.strip().replace(',', '.')
+
+        if not result:
+            return "0"
+
+        return result
+
+
+class NumberValidator:
+    """Класс для валидации числовых значений"""
+
+    @staticmethod
+    def is_number(value: str) -> bool:
+        """
+        Проверяет, является ли строка корректным числом
+
+        Args:
+            value: Строка для проверки
+
+        Returns:
+            True если строка является числом, False в противном случае
+        """
+        try:
+            float(value)
+            return True
+        except ValueError:
+            return False
+
+
+class EntryNormalizer:
+    """Класс для нормализации данных из полей ввода"""
+
+    @staticmethod
+    def normalize_entries(entry: tk.Entry) -> str:
+        """
+        Получает и нормализует значение из поля ввода
+
+        Args:
+            entry: Поле ввода tkinter
+
+        Returns:
+            Нормализованное значение
+        """
+        value = entry.get()
+        return NumberNormalizer.normalize_number(value)
+
+
+class CalculatorApp:
+    """Главный класс приложения калькулятора"""
+
+    def __init__(self, master: tk.Tk, amount: int = 10):
+        """
+        Инициализация калькулятора
+
+        Args:
+            master: Главное окно tkinter
+            amount: Количество полей ввода
+        """
+        self.master = master
+        self.amount = amount
+        self.state = CalculatorState.IDLE
+        self.entry_fields = []
+
+        # Настройка окна
+        self.master.title("Калькулятор")
+        self.master.resizable(False, False)
+
+        # Создание интерфейса
+        self._create_widgets()
+
+    def _create_widgets(self):
+        """Создание виджетов интерфейса"""
+        # Создание полей ввода и знаков плюс
+        for i in range(self.amount):
+            entry = tk.Entry(self.master, width=10, font=("Arial", 12))
+            entry.grid(row=0, column=i * 2, padx=5, pady=10)
+            self.entry_fields.append(entry)
+
+            # Добавление знака "+" между полями (кроме последнего)
+            if i < self.amount - 1:
+                label_plus = tk.Label(self.master, text="+", font=("Arial", 14))
+                label_plus.grid(row=0, column=i * 2 + 1)
+
+        # Знак равно
+        label_equals = tk.Label(self.master, text="=", font=("Arial", 14))
+        label_equals.grid(row=0, column=self.amount * 2 - 1)
+
+        # Поле результата
+        self.result_field = tk.Entry(
+            self.master,
+            width=15,
+            font=("Arial", 12, "bold"),
+            state="readonly",
+            justify="center"
+        )
+        self.result_field.grid(row=0, column=self.amount * 2, padx=5)
+
+        # Кнопка вычисления
+        calculate_button = tk.Button(
+            self.master,
+            text="Вычислить",
+            command=self.calculate_plus,
+            font=("Arial", 12),
+            bg="#4CAF50",
+            fg="white",
+            padx=20,
+            pady=5
+        )
+        calculate_button.grid(row=1, column=0, columnspan=self.amount * 2 + 1, pady=10)
+
+        # Метка состояния (для отладки)
+        self.state_label = tk.Label(
+            self.master,
+            text=f"Состояние: {self.state.value}",
+            font=("Arial", 9),
+            fg="gray"
+        )
+        self.state_label.grid(row=2, column=0, columnspan=self.amount * 2 + 1)
+
+    def _set_state(self, new_state: CalculatorState):
+        """
+        Установка нового состояния калькулятора
+
+        Args:
+            new_state: Новое состояние
+        """
+        self.state = new_state
+        self.state_label.config(text=f"Состояние: {self.state.value}")
+        self.master.update_idletasks()
+
+    def calculate_plus(self):
+        """Основной метод вычисления суммы"""
+        # Переход в состояние обработки
+        self._set_state(CalculatorState.PROCESSING)
+
+        # Нормализация ввода
+        self._set_state(CalculatorState.NORMALIZING)
+        normalized_values = []
+
+        for entry in self.entry_fields:
+            normalized_value = EntryNormalizer.normalize_entries(entry)
+            normalized_values.append(normalized_value)
+
+        # Валидация значений
+        self._set_state(CalculatorState.VALIDATING)
+        values = []
+
+        for normalized_value in normalized_values:
+            if not NumberValidator.is_number(normalized_value):
+                # Переход в состояние ошибки
+                self._set_state(CalculatorState.ERROR)
+                messagebox.showerror(
+                    "Ошибка",
+                    f"Некорректное значение: '{normalized_value}'\n"
+                    "Пожалуйста, введите корректные числа."
+                )
+                self._display_result("Ошибка")
+                self._set_state(CalculatorState.IDLE)
+                return
+
+            values.append(float(normalized_value))
+
+        # Вычисление результата
+        self._set_state(CalculatorState.CALCULATING)
+        result = sum(values)
+
+        # Форматирование результата (целое число без дробной части)
+        if result == int(result):
+            result = int(result)
+
+        # Отображение результата
+        self._set_state(CalculatorState.RESULT)
+        self._display_result(str(result))
+
+        # Возврат в состояние ожидания
+        self._set_state(CalculatorState.IDLE)
+
+    def _display_result(self, result: str):
+        """
+        Отображение результата в поле результата
+
+        Args:
+            result: Строка результата для отображения
+        """
+        self.result_field.config(state="normal")
+        self.result_field.delete(0, tk.END)
+        self.result_field.insert(0, result)
+        self.result_field.config(state="readonly")
+
+
+def main():
+    """Главная функция приложения"""
+    root = tk.Tk()
+    app = CalculatorApp(root, amount=11)
+    root.mainloop()
+
+#todo исправить диаграмму и код с числом во 2 ячейке
+if __name__ == "__main__":
+    main()

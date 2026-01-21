@@ -2,7 +2,7 @@
 import unittest
 
 
-# main.py (Второй этап: минимальная реализация)
+# calculator.py (Второй этап: минимальная реализация)
 def is_even(num):
     return num % 2 == 0
 
